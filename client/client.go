@@ -19,7 +19,7 @@ type RestClient struct {
 }
 
 // Login performs a login operation and stores the sessionID.
-func (c *RestClient) Login(username, password string) error {
+func (c *RestClient) Login(credentials LoginCredentials) error {
 	// Initialize a CookieJar
 	jar, err := cookiejar.New(nil)
 	if err != nil {
@@ -34,8 +34,8 @@ func (c *RestClient) Login(username, password string) error {
 	// Prepare the multipart form data
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
-	writer.WriteField("username", username)
-	writer.WriteField("password", password)
+	writer.WriteField("username", credentials.User)
+	writer.WriteField("password", credentials.Password)
 	writer.WriteField("remember-me", "true")
 	writer.Close()
 
