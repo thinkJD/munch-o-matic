@@ -22,3 +22,6 @@
 *.swm
 .vscode/
 *.iml
+
+# Credentials
+.munch-o-matic.yaml
