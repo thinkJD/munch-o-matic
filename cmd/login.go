@@ -24,7 +24,6 @@ var loginCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println("Successfully logged in, sessionid:", restClient.SessionID)
 	},
 }
 
