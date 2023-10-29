@@ -23,7 +23,7 @@ var loginCmd = &cobra.Command{
 			fmt.Println("Failed to login:", err)
 			return
 		}
-
+		restClient.GetUser()
 	},
 }
 
