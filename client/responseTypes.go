@@ -18,30 +18,11 @@ type UserResponse struct {
 		RfidKey   string `json:"rfidKey"`
 		Username  string `json:"username"`
 		Locked    bool   `json:"locked"`
-		Active    bool   `json:"active"`
 		Customer  struct {
 			ID             int `json:"id"`
 			AccountBalance struct {
 				Amount int `json:"amount"`
 			} `json:"accountBalance"`
-			Client struct {
-				ID        int    `json:"id"`
-				Name      string `json:"name"`
-				NameShort string `json:"nameShort"`
-				Caterer   struct {
-					ID                    int    `json:"id"`
-					Name                  string `json:"name"`
-					Recipient             string `json:"recipient"`
-					Iban                  string `json:"iban"`
-					Bic                   any    `json:"bic"`
-					TopupReasonForPayment string `json:"topupReasonForPayment"`
-				} `json:"caterer"`
-			} `json:"client"`
-			DefaultPriceLevel struct {
-				ID          int    `json:"id"`
-				Name        string `json:"name"`
-				Description string `json:"description"`
-			} `json:"defaultPriceLevel"`
 			Payments []struct {
 				ID     int `json:"id"`
 				Amount struct {
