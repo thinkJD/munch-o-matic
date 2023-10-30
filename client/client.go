@@ -154,12 +154,9 @@ func (c *RestClient) GetUser() (UserResponse, error) {
 	return userResp, nil
 }
 
-func (c *RestClient) GetMenue() (MenuResponse, error) {
+func (c *RestClient) GetMenue() ([]MenuResponse, error) {
 	var menuResponses []MenuResponse
 
-	if c.Client == nil {
-		return MenuResponse{}, fmt.Errorf("client not initialized. Please login first")
-	}
 	customer := 44897 // TODO: get this from the user object
 	nextWeeks := getNextFourWeeks()
 
@@ -176,10 +173,8 @@ func (c *RestClient) GetMenue() (MenuResponse, error) {
 		if err != nil {
 			log.Fatal("Error getting menues")
 		}
-
-		menuResponses.append(menuResp)
-		fmt.Print()
+		menuResponses = append(menuResponses, menuResp)
 	}
 
-	return menuResponse, nil
+	return menuResponses, nil
 }

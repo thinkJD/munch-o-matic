@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
+
 	"github.com/spf13/cobra"
 )
 
@@ -8,7 +12,16 @@ var getMenue = &cobra.Command{
 	Use:   "get-menue",
 	Short: "TasteNext account login",
 	Run: func(cmd *cobra.Command, args []string) {
-		cli.GetMenue()
+		menues, err := cli.GetMenue()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		jsonData, err := json.MarshalIndent(menues, "", "    ")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(string(jsonData))
 	},
 }
 
