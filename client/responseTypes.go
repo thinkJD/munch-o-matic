@@ -39,10 +39,8 @@ type UserResponse struct {
 				ValueDate         any    `json:"valueDate"`
 			} `json:"payments"`
 			Bookings []struct {
-				ID                 int   `json:"id"`
-				BookingPrice       int   `json:"bookingPrice"`
-				BookingTime        int64 `json:"bookingTime"`
-				PickupTime         any   `json:"pickupTime"`
+				ID                 int `json:"id"`
+				BookingPrice       int `json:"bookingPrice"`
 				MenuBlockLineEntry struct {
 					ID           int   `json:"id"`
 					EmissionDate int64 `json:"emissionDate"`
@@ -50,12 +48,14 @@ type UserResponse struct {
 						ID          int    `json:"id"`
 						Description string `json:"description"`
 						Name        string `json:"name"`
-						Additives   []struct {
-							ID         int    `json:"id"`
-							Name       string `json:"name"`
-							Identifier string `json:"identifier"`
-							Type       string `json:"type"`
-						} `json:"additives"`
+						/*
+							Additives   []struct {
+								ID         int    `json:"id"`
+								Name       string `json:"name"`
+								Identifier string `json:"identifier"`
+								Type       string `json:"type"`
+							} `json:"additives"`
+						*/
 					} `json:"dish"`
 				} `json:"menuBlockLineEntry"`
 			} `json:"bookings"`

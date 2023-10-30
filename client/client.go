@@ -77,6 +77,10 @@ func (c *RestClient) SendRequest(method, urlStr string, body io.Reader, result i
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("server returns status code %d", resp.StatusCode)
+	}
+
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("error reading response body: %v", err)
