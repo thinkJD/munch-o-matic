@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 )
 
 // RestClient struct to manage REST client state
@@ -16,26 +17,56 @@ type RestClient struct {
 	Client    *http.Client
 	SessionID string
 	UserId    int
+	CookieJar *cookiejar.Jar
 }
 
-// Login performs a login operation and stores the sessionID.
-func (c *RestClient) Login(username, password string) error {
-	// Initialize a CookieJar
+func NewClient(config Config) (*RestClient, error) {
+	c := &RestClient{}
+
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		return fmt.Errorf("error initializing cookie jar: %v", err)
+		return nil, fmt.Errorf("error initializing cookie jar: %v", err)
 	}
-
-	// Create an HTTP client with the cookie jar
+	c.CookieJar = jar
 	c.Client = &http.Client{
 		Jar: jar,
 	}
+	cookie := &http.Cookie{
+		Name:  "JSESSIONID",
+		Value: config.SessionCredentials.SessionID,
+		Path:  "/",
+	}
+	cookieUrl, err := url.Parse("https://rest.tastenext.de")
+	c.CookieJar.SetCookies(cookieUrl, []*http.Cookie{cookie})
 
+	c.SessionID = config.SessionCredentials.SessionID
+	// Check if the old cookie works
+	CurrentUserResponse, err := c.GetCurrentUser()
+	// If not, login again
+	if err != nil {
+		fmt.Println("update session token")
+		err := c.Login(config)
+		if err != nil {
+			return nil, fmt.Errorf("failed to log in")
+		}
+		// And check if it works now
+		CurrentUserResponse, err = c.GetCurrentUser()
+		if err != nil {
+			return nil, fmt.Errorf("failed to refresh token")
+		}
+	}
+	c.UserId = CurrentUserResponse.User.ID
+
+	return c, nil
+}
+
+// Login performs a login operation and stores the sessionID.
+func (c *RestClient) Login(config Config) error {
 	// Prepare the multipart form data
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
-	writer.WriteField("username", username)
-	writer.WriteField("password", password)
+	writer.WriteField("username", config.LoginCredentials.User)
+	writer.WriteField("password", config.LoginCredentials.Password)
 	writer.WriteField("remember-me", "true")
 	writer.Close()
 
@@ -56,7 +87,7 @@ func (c *RestClient) Login(username, password string) error {
 	defer resp.Body.Close()
 
 	foundCookie := false
-	for _, cookie := range jar.Cookies(req.URL) {
+	for _, cookie := range c.CookieJar.Cookies(req.URL) {
 		if cookie.Name == "JSESSIONID" {
 			c.SessionID = cookie.Value
 			foundCookie = true
@@ -67,12 +98,6 @@ func (c *RestClient) Login(username, password string) error {
 		return fmt.Errorf("error getting session cookie")
 	}
 
-	CurrentUserResponse, err := c.GetCurrentUser()
-	if err != nil {
-		return fmt.Errorf("error getting current user")
-	}
-
-	c.UserId = CurrentUserResponse.User.ID
 	return nil
 }
 
@@ -81,28 +106,32 @@ func (c *RestClient) GetCurrentUser() (CurrentUserResponse, error) {
 	var currentUserResp CurrentUserResponse
 
 	if c.Client == nil {
-		return currentUserResp, fmt.Errorf("client not initialized. Please login first")
+		return CurrentUserResponse{}, fmt.Errorf("client not initialized. Please login first")
 	}
 
 	req, err := http.NewRequest("GET", "https://rest.tastenext.de/backend/user/current-user", nil)
 	if err != nil {
-		return currentUserResp, fmt.Errorf("error creating request: %v", err)
+		return CurrentUserResponse{}, fmt.Errorf("error creating request: %v", err)
 	}
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
-		return currentUserResp, fmt.Errorf("error performing request: %v", err)
+		return CurrentUserResponse{}, fmt.Errorf("error performing request: %v", err)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return CurrentUserResponse{}, fmt.Errorf("Server returned status code %v", resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return currentUserResp, fmt.Errorf("error reading response body: %v", err)
+		return CurrentUserResponse{}, fmt.Errorf("error reading response body: %v", err)
 	}
 
 	err = json.Unmarshal(body, &currentUserResp)
 	if err != nil {
-		return currentUserResp, fmt.Errorf("error unmarshaling JSON: %v", err)
+		return CurrentUserResponse{}, fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
 
 	return currentUserResp, nil
