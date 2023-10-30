@@ -1,0 +1,8 @@
+
+LoginCredentials:
+  User: null
+  Password: null
+
+SessionCredentials:
+  SessionID: null
+  UserId: null
