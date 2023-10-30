@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 )
 
 // RestClient struct to manage REST client state
@@ -26,23 +27,29 @@ func NewClient(config Config) (*RestClient, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error initializing cookie jar: %v", err)
 	}
-
 	c.CookieJar = jar
 	c.Client = &http.Client{
 		Jar: jar,
 	}
+	cookie := &http.Cookie{
+		Name:  "JSESSIONID",
+		Value: config.SessionCredentials.SessionID,
+		Path:  "/",
+	}
+	cookieUrl, err := url.Parse("https://rest.tastenext.de")
+	c.CookieJar.SetCookies(cookieUrl, []*http.Cookie{cookie})
 
 	c.SessionID = config.SessionCredentials.SessionID
-	// Check if the token works
+	// Check if the old cookie works
 	CurrentUserResponse, err := c.GetCurrentUser()
-	// If not, refresh
+	// If not, login again
 	if err != nil {
 		fmt.Println("update session token")
 		err := c.Login(config)
 		if err != nil {
 			return nil, fmt.Errorf("failed to log in")
 		}
-		// Check if the token works now
+		// And check if it works now
 		CurrentUserResponse, err = c.GetCurrentUser()
 		if err != nil {
 			return nil, fmt.Errorf("failed to refresh token")
@@ -99,28 +106,32 @@ func (c *RestClient) GetCurrentUser() (CurrentUserResponse, error) {
 	var currentUserResp CurrentUserResponse
 
 	if c.Client == nil {
-		return currentUserResp, fmt.Errorf("client not initialized. Please login first")
+		return CurrentUserResponse{}, fmt.Errorf("client not initialized. Please login first")
 	}
 
 	req, err := http.NewRequest("GET", "https://rest.tastenext.de/backend/user/current-user", nil)
 	if err != nil {
-		return currentUserResp, fmt.Errorf("error creating request: %v", err)
+		return CurrentUserResponse{}, fmt.Errorf("error creating request: %v", err)
 	}
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
-		return currentUserResp, fmt.Errorf("error performing request: %v", err)
+		return CurrentUserResponse{}, fmt.Errorf("error performing request: %v", err)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return CurrentUserResponse{}, fmt.Errorf("Server returned status code %v", resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return currentUserResp, fmt.Errorf("error reading response body: %v", err)
+		return CurrentUserResponse{}, fmt.Errorf("error reading response body: %v", err)
 	}
 
 	err = json.Unmarshal(body, &currentUserResp)
 	if err != nil {
-		return currentUserResp, fmt.Errorf("error unmarshaling JSON: %v", err)
+		return CurrentUserResponse{}, fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
 
 	return currentUserResp, nil
