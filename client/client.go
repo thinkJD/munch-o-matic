@@ -16,26 +16,50 @@ type RestClient struct {
 	Client    *http.Client
 	SessionID string
 	UserId    int
+	CookieJar *cookiejar.Jar
 }
 
-// Login performs a login operation and stores the sessionID.
-func (c *RestClient) Login(credentials LoginCredentials) error {
-	// Initialize a CookieJar
+func NewClient(config Config) (*RestClient, error) {
+	c := &RestClient{}
+
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		return fmt.Errorf("error initializing cookie jar: %v", err)
+		return nil, fmt.Errorf("error initializing cookie jar: %v", err)
 	}
 
-	// Create an HTTP client with the cookie jar
+	c.CookieJar = jar
 	c.Client = &http.Client{
 		Jar: jar,
 	}
 
+	c.SessionID = config.SessionCredentials.SessionID
+	// Check if the token works
+	CurrentUserResponse, err := c.GetCurrentUser()
+	// If not, refresh
+	if err != nil {
+		fmt.Println("update session token")
+		err := c.Login(config)
+		if err != nil {
+			return nil, fmt.Errorf("failed to log in")
+		}
+		// Check if the token works now
+		CurrentUserResponse, err = c.GetCurrentUser()
+		if err != nil {
+			return nil, fmt.Errorf("failed to refresh token")
+		}
+	}
+	c.UserId = CurrentUserResponse.User.ID
+
+	return c, nil
+}
+
+// Login performs a login operation and stores the sessionID.
+func (c *RestClient) Login(config Config) error {
 	// Prepare the multipart form data
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
-	writer.WriteField("username", credentials.User)
-	writer.WriteField("password", credentials.Password)
+	writer.WriteField("username", config.LoginCredentials.User)
+	writer.WriteField("password", config.LoginCredentials.Password)
 	writer.WriteField("remember-me", "true")
 	writer.Close()
 
@@ -56,7 +80,7 @@ func (c *RestClient) Login(credentials LoginCredentials) error {
 	defer resp.Body.Close()
 
 	foundCookie := false
-	for _, cookie := range jar.Cookies(req.URL) {
+	for _, cookie := range c.CookieJar.Cookies(req.URL) {
 		if cookie.Name == "JSESSIONID" {
 			c.SessionID = cookie.Value
 			foundCookie = true
@@ -67,12 +91,6 @@ func (c *RestClient) Login(credentials LoginCredentials) error {
 		return fmt.Errorf("error getting session cookie")
 	}
 
-	CurrentUserResponse, err := c.GetCurrentUser()
-	if err != nil {
-		return fmt.Errorf("error getting current user")
-	}
-
-	c.UserId = CurrentUserResponse.User.ID
 	return nil
 }
 

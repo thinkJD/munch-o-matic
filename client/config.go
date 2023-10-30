@@ -5,6 +5,12 @@ type LoginCredentials struct {
 	Password string
 }
 
+type SessionCredentials struct {
+	SessionID string
+	UserId    int
+}
+
 type Config struct {
-	LoginCredentials LoginCredentials
+	LoginCredentials   LoginCredentials
+	SessionCredentials SessionCredentials
 }

@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"munch-o-matic/client"
 	"os"
+	"time"
+
+	"munch-o-matic/client"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -13,7 +15,7 @@ import (
 
 var cfgFile string
 var cfg client.Config
-var cli = &client.RestClient{}
+var cli client.RestClient
 
 var rootCmd = &cobra.Command{
 	Use:   "munch-o-matic",
@@ -23,12 +25,17 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		// Perform login
-		err = cli.Login(cfg.LoginCredentials)
+		cli, err := client.NewClient(cfg)
 		if err != nil {
-			fmt.Println("Failed to login:", err)
+			fmt.Println("Failed to init client:", err)
 			return
+		}
+		viper.Set("sessioncredentials.sessionid", cli.SessionID)
+		viper.Set("sessioncredentials.userid", cli.UserId)
+		viper.Set("sessioncredentials.createdat", time.Now())
+		err = viper.WriteConfig()
+		if err != nil {
+			log.Fatal(err)
 		}
 	},
 }
