@@ -42,9 +42,8 @@ type UserResponse struct {
 				ID                 int `json:"id"`
 				BookingPrice       int `json:"bookingPrice"`
 				MenuBlockLineEntry struct {
-					ID           int   `json:"id"`
-					EmissionDate int64 `json:"emissionDate"`
-					Dish         struct {
+					ID   int `json:"id"`
+					Dish struct {
 						ID          int    `json:"id"`
 						Description string `json:"description"`
 						Name        string `json:"name"`
@@ -64,34 +63,20 @@ type UserResponse struct {
 }
 
 type MenuResponse struct {
-	Status      string      `json:"status"`
-	Message     string      `json:"message"`
-	Title       string      `json:"title"`
-	Transmitted interface{} `json:"transmitted"`
-	Bookings    []struct {
-		ID                 int         `json:"id"`
-		BookingPrice       int         `json:"bookingPrice"`
-		BookingTime        int64       `json:"bookingTime"`
-		PickupTime         interface{} `json:"pickupTime"`
+	Status   string `json:"status"`
+	Message  string `json:"message"`
+	Title    string `json:"title"`
+	Bookings []struct {
+		ID           int   `json:"id"`
+		BookingPrice int   `json:"bookingPrice"`
+		BookingTime  int64 `json:"bookingTime"`
+		PickupTime   any   `json:"pickupTime"`
+
 		MenuBlockLineEntry struct {
-			ID            int   `json:"id"`
-			EmissionDate  int64 `json:"emissionDate"`
-			MenuBlockLine struct {
-				ID          int    `json:"id"`
-				Name        string `json:"name"`
-				Color       string `json:"color"`
-				ColorBooked string `json:"colorBooked"`
-			} `json:"menuBlockLine"`
 			Dish struct {
 				ID          int    `json:"id"`
 				Description string `json:"description"`
 				Name        string `json:"name"`
-				Additives   []struct {
-					ID         int    `json:"id"`
-					Name       string `json:"name"`
-					Identifier string `json:"identifier"`
-					Type       string `json:"type"`
-				} `json:"additives"`
 			} `json:"dish"`
 			NumberOfBookings int `json:"numberOfBookings"`
 		} `json:"menuBlockLineEntry"`
@@ -101,56 +86,28 @@ type MenuResponse struct {
 	MenuBlockWeekWrapper struct {
 		MenuBlockWeek struct {
 			MenuBlock struct {
-				ID                              int    `json:"id"`
-				Name                            string `json:"name"`
-				BookingUntilTime                string `json:"bookingUntilTime"`
-				CancellationUntilTime           string `json:"cancellationUntilTime"`
-				BookingUntilXDaysInAdvance      int    `json:"bookingUntilXDaysInAdvance"`
-				CancellationUntilXDaysInAdvance int    `json:"cancellationUntilXDaysInAdvance"`
+				ID   int    `json:"id"`
+				Name string `json:"name"`
 			} `json:"menuBlock"`
-			CalendarWeek             int `json:"calendarWeek"`
-			Year                     int `json:"year"`
-			NextCalendarWeek         int `json:"nextCalendarWeek"`
-			NextCalendarWeekYear     int `json:"nextCalendarWeekYear"`
-			PreviousCalendarWeek     int `json:"previousCalendarWeek"`
-			PreviousCalendarWeekYear int `json:"previousCalendarWeekYear"`
-			MenuBlockLineWeeks       []struct {
-				MenuBlockLine struct {
-					ID          int    `json:"id"`
-					Name        string `json:"name"`
-					Color       string `json:"color"`
-					ColorBooked string `json:"colorBooked"`
-				} `json:"menuBlockLine"`
+			CalendarWeek       int `json:"calendarWeek"`
+			Year               int `json:"year"`
+			MenuBlockLineWeeks []struct {
 				CalendarWeek int `json:"calendarWeek"`
 				Year         int `json:"year"`
 				Entries      []struct {
-					ID            int   `json:"id"`
-					EmissionDate  int64 `json:"emissionDate"`
-					MenuBlockLine struct {
-						ID          int    `json:"id"`
-						Name        string `json:"name"`
-						Color       string `json:"color"`
-						ColorBooked string `json:"colorBooked"`
-					} `json:"menuBlockLine"`
+					ID   int `json:"id"`
 					Dish struct {
 						ID          int    `json:"id"`
 						Description string `json:"description"`
 						Name        string `json:"name"`
-						Additives   []struct {
-							ID         int    `json:"id"`
-							Name       string `json:"name"`
-							Identifier string `json:"identifier"`
-							Type       string `json:"type"`
-						} `json:"additives"`
 					} `json:"dish"`
 					NumberOfBookings int `json:"numberOfBookings"`
 				} `json:"entries"`
 			} `json:"menuBlockLineWeeks"`
 		} `json:"menuBlockWeek"`
-		WeekdayHeadings []string `json:"weekdayHeadings"`
 	} `json:"menuBlockWeekWrapper"`
-	CurrentAccountBalance string      `json:"currentAccountBalance"`
-	CustomerName          string      `json:"customerName"`
-	CustomerID            int         `json:"customerId"`
-	BpcJSON               interface{} `json:"bpcJson"`
+	CurrentAccountBalance string `json:"currentAccountBalance"`
+	CustomerName          string `json:"customerName"`
+	CustomerID            int    `json:"customerId"`
+	BpcJSON               any    `json:"bpcJson"`
 }
