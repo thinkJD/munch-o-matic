@@ -148,32 +148,54 @@ func (c *RestClient) GetUser() (UserResponse, error) {
 
 	req, err := http.NewRequest("GET", urlWithUserID, nil)
 	if err != nil {
-		return userResp, fmt.Errorf("error creating request: %v", err)
+		return UserResponse{}, fmt.Errorf("error creating request: %v", err)
 	}
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
-		return userResp, fmt.Errorf("error performing request: %v", err)
+		return UserResponse{}, fmt.Errorf("error performing request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return userResp, fmt.Errorf("error reading response body: %v", err)
+		return UserResponse{}, fmt.Errorf("error reading response body: %v", err)
 	}
 
 	err = json.Unmarshal(body, &userResp)
 	if err != nil {
-		return userResp, fmt.Errorf("error unmarshaling JSON: %v", err)
+		return UserResponse{}, fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
 
 	// Pretty-print the JSON
 	prettyJSON, err := json.MarshalIndent(userResp, "", "  ")
 	if err != nil {
-		return userResp, fmt.Errorf("error marshaling JSON: %v", err)
+		return UserResponse{}, fmt.Errorf("error marshaling JSON: %v", err)
 	}
 
 	fmt.Println(string(prettyJSON))
 
 	return userResp, nil
+}
+
+func (c *RestClient) GetMenue() (MenuResponse, error) {
+	var menuResponse MenuResponse
+
+	if c.Client == nil {
+		return MenuResponse{}, fmt.Errorf("client not initialized. Please login first")
+	}
+	customer := 44897 // TODO: get this from the user object
+
+	nextWeeks := getNextFourWeeks()
+
+	menuUrl := fmt.Sprintf(
+		"https://rest.tastenext.de/frontend/menu/get-personal-menu-week/calendar-week/%d/year/%d/customer/%d/menu-block/14",
+		nextWeeks[0].CalendarWeek,
+		nextWeeks[0].Year,
+		customer,
+	)
+
+	fmt.Println(menuUrl)
+
+	return menuResponse, nil
 }

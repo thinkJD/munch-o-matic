@@ -6,8 +6,9 @@ type LoginCredentials struct {
 }
 
 type SessionCredentials struct {
-	SessionID string
-	UserId    int
+	SessionID  string
+	UserId     int
+	CustomerId int
 }
 
 type Config struct {
