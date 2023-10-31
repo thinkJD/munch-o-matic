@@ -4,6 +4,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -18,6 +19,7 @@ type RestClient struct {
 	Client    *http.Client
 	SessionID string
 	UserId    int
+	Customer  int
 	CookieJar *cookiejar.Jar
 }
 
@@ -57,11 +59,13 @@ func NewClient(config Config) (*RestClient, error) {
 		}
 	}
 	c.UserId = CurrentUserResponse.User.ID
+	// TODO: get this value from the menu frontend
+	c.Customer = 44897
 
 	return c, nil
 }
 
-func (c *RestClient) SendRequest(method, urlStr string, body io.Reader, result interface{}) error {
+func (c *RestClient) sendRequest(method, urlStr string, body io.Reader, result interface{}) error {
 	if c.Client == nil {
 		return fmt.Errorf("client not initialized. Please login first")
 	}
@@ -139,7 +143,7 @@ func (c *RestClient) Login(config Config) error {
 func (c *RestClient) GetCurrentUser() (CurrentUserResponse, error) {
 	var currentUserResp CurrentUserResponse
 
-	err := c.SendRequest("GET", "https://rest.tastenext.de/backend/user/current-user", nil, &currentUserResp)
+	err := c.sendRequest("GET", "https://rest.tastenext.de/backend/user/current-user", nil, &currentUserResp)
 	if err != nil {
 		return CurrentUserResponse{}, fmt.Errorf("error creating request: %v", err)
 	}
@@ -151,7 +155,7 @@ func (c *RestClient) GetUser() (UserResponse, error) {
 	var userResp UserResponse
 
 	urlWithUserID := fmt.Sprintf("https://rest.tastenext.de/backend/user/%d", c.UserId)
-	err := c.SendRequest("GET", urlWithUserID, nil, &userResp)
+	err := c.sendRequest("GET", urlWithUserID, nil, &userResp)
 	if err != nil {
 		log.Fatal("Error sending request")
 	}
@@ -173,7 +177,7 @@ func (c *RestClient) GetMenu() ([]MenuResponse, error) {
 		)
 
 		var menuResp MenuResponse
-		err := c.SendRequest("GET", menuUrl, nil, &menuResp)
+		err := c.sendRequest("GET", menuUrl, nil, &menuResp)
 		if err != nil {
 			log.Fatal("Error getting menus")
 		}
@@ -181,4 +185,42 @@ func (c *RestClient) GetMenu() ([]MenuResponse, error) {
 	}
 
 	return menuResponses, nil
+}
+
+func (c *RestClient) OrderMenu(menuBlockLineEntry int) error {
+	/*
+		If the dish is already ordered -> success
+		otherwise order the dish and check the response is it there? -> success
+		if the status field is "FAILED" -> failed (account balance)
+		return a list of all booked dishes (or just the booked dish?)
+	*/
+
+	var menuResp MenuResponse
+
+	bookingUrl := fmt.Sprintf(
+		"https://rest.tastenext.de/frontend/menu/order/menu-block-line-entry/%d/customer/%d",
+		menuBlockLineEntry,
+		c.Customer)
+
+	err := c.sendRequest("GET", bookingUrl, nil, &menuResp)
+	if err != nil {
+		return errors.New("failed sending order request")
+	}
+
+	if menuResp.Status != "OK" {
+		// TODO: Check account balance
+		return errors.New("failed to place order")
+	}
+
+	var ack bool = false
+	for _, booking := range menuResp.Bookings {
+		if booking.MenuBlockLineEntry.ID == menuBlockLineEntry {
+			ack = true
+		}
+	}
+	if !ack {
+		return errors.New("failed to ack booking")
+	}
+
+	return nil
 }

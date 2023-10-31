@@ -73,6 +73,7 @@ type MenuResponse struct {
 		PickupTime   any   `json:"pickupTime"`
 
 		MenuBlockLineEntry struct {
+			ID   int `json:"id"`
 			Dish struct {
 				ID          int    `json:"id"`
 				Description string `json:"description"`
