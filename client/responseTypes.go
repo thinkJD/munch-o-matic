@@ -42,24 +42,18 @@ type UserResponse struct {
 				ID                 int `json:"id"`
 				BookingPrice       int `json:"bookingPrice"`
 				MenuBlockLineEntry struct {
-					ID   int `json:"id"`
-					Dish struct {
-						ID          int    `json:"id"`
-						Description string `json:"description"`
-						Name        string `json:"name"`
-						/*
-							Additives   []struct {
-								ID         int    `json:"id"`
-								Name       string `json:"name"`
-								Identifier string `json:"identifier"`
-								Type       string `json:"type"`
-							} `json:"additives"`
-						*/
-					} `json:"dish"`
+					ID   int  `json:"id"`
+					Dish Dish `json:"dish"`
 				} `json:"menuBlockLineEntry"`
 			} `json:"bookings"`
 		} `json:"customer"`
 	} `json:"user"`
+}
+
+type Dish struct {
+	ID          int    `json:"id"`
+	Description string `json:"description"`
+	Name        string `json:"name"`
 }
 
 type MenuResponse struct {
@@ -67,19 +61,14 @@ type MenuResponse struct {
 	Message  string `json:"message"`
 	Title    string `json:"title"`
 	Bookings []struct {
-		ID           int   `json:"id"`
-		BookingPrice int   `json:"bookingPrice"`
-		BookingTime  int64 `json:"bookingTime"`
-		PickupTime   any   `json:"pickupTime"`
-
+		ID                 int   `json:"id"`
+		BookingPrice       int   `json:"bookingPrice"`
+		BookingTime        int64 `json:"bookingTime"`
+		PickupTime         any   `json:"pickupTime"`
 		MenuBlockLineEntry struct {
-			ID   int `json:"id"`
-			Dish struct {
-				ID          int    `json:"id"`
-				Description string `json:"description"`
-				Name        string `json:"name"`
-			} `json:"dish"`
-			NumberOfBookings int `json:"numberOfBookings"`
+			ID               int  `json:"id"`
+			Dish             Dish `json:"dish"`
+			NumberOfBookings int  `json:"numberOfBookings"`
 		} `json:"menuBlockLineEntry"`
 	} `json:"bookings"`
 	Week                 int `json:"week"`
@@ -96,13 +85,9 @@ type MenuResponse struct {
 				CalendarWeek int `json:"calendarWeek"`
 				Year         int `json:"year"`
 				Entries      []struct {
-					ID   int `json:"id"`
-					Dish struct {
-						ID          int    `json:"id"`
-						Description string `json:"description"`
-						Name        string `json:"name"`
-					} `json:"dish"`
-					NumberOfBookings int `json:"numberOfBookings"`
+					ID               int  `json:"id"`
+					Dish             Dish `json:"dish"`
+					NumberOfBookings int  `json:"numberOfBookings"`
 				} `json:"entries"`
 			} `json:"menuBlockLineWeeks"`
 		} `json:"menuBlockWeek"`
