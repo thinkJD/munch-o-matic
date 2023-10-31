@@ -158,7 +158,7 @@ func (c *RestClient) GetUser() (UserResponse, error) {
 	return userResp, nil
 }
 
-func (c *RestClient) GetMenue() ([]MenuResponse, error) {
+func (c *RestClient) GetMenu() ([]MenuResponse, error) {
 	var menuResponses []MenuResponse
 
 	customer := 44897 // TODO: get this from the user object
@@ -175,7 +175,7 @@ func (c *RestClient) GetMenue() ([]MenuResponse, error) {
 		var menuResp MenuResponse
 		err := c.SendRequest("GET", menuUrl, nil, &menuResp)
 		if err != nil {
-			log.Fatal("Error getting menues")
+			log.Fatal("Error getting menus")
 		}
 		menuResponses = append(menuResponses, menuResp)
 	}
