@@ -22,7 +22,7 @@ var getMenue = &cobra.Command{
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader([]string{"kw", "Name", "Description"})
 
-		// Iterate through the list and append each dish's name and description to the table
+		// Iterate through the list and append each dish's week, name and description to the table
 		for _, menu := range menus {
 			calendarWeek := menu.MenuBlockWeekWrapper.MenuBlockWeek.CalendarWeek
 			for _, week := range menu.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
