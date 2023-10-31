@@ -9,11 +9,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var getMenue = &cobra.Command{
-	Use:   "get-menue",
-	Short: "TasteNext account login",
+var getMenu = &cobra.Command{
+	Use:   "list",
+	Short: "list all menus",
 	Run: func(cmd *cobra.Command, args []string) {
-		menus, err := cli.GetMenue()
+		menus, err := cli.GetMenu()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -41,5 +41,5 @@ var getMenue = &cobra.Command{
 // Add any command-specific flags or arguments here
 
 func init() {
-	rootCmd.AddCommand(getMenue)
+	menuCmd.AddCommand(getMenu)
 }
