@@ -18,20 +18,13 @@ var getMenu = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		// Initialize tablewriter
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"kw", "Name", "Description"})
-
-		// Iterate through the list and append each dish's week, name and description to the table
+		table.SetHeader([]string{"Date", "Id", "Name", "Description"})
 		for _, menu := range menus {
-			calendarWeek := menu.MenuBlockWeekWrapper.MenuBlockWeek.CalendarWeek
-			for _, week := range menu.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
-				for _, entry := range week.Entries {
-					dishName := entry.Dish.Name
-					dishDescription := entry.Dish.Description
-					table.Append([]string{fmt.Sprintf("%d", calendarWeek), dishName, dishDescription})
-				}
-			}
+			table.Append([]string{menu.Date.Format("Mon 02.01.06"),
+				fmt.Sprintf("%d", menu.OrderId),
+				menu.Dish.Name, menu.Dish.Description},
+			)
 		}
 
 		table.Render()

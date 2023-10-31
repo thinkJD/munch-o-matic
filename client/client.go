@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"time"
 )
 
 // RestClient struct to manage REST client state
@@ -162,8 +163,16 @@ func (c *RestClient) GetUser() (UserResponse, error) {
 	return userResp, nil
 }
 
-func (c *RestClient) GetMenu() ([]MenuResponse, error) {
-	var menuResponses []MenuResponse
+type UpcomingDish struct {
+	Dummy   bool
+	Date    time.Time
+	OrderId int
+	Dish    Dish
+	Orders  int // We get the total order for each dish from the API ;-)
+}
+
+func (c *RestClient) GetMenu() ([]UpcomingDish, error) {
+	var upcomingDishes []UpcomingDish
 
 	customer := 44897 // TODO: get this from the user object
 	nextWeeks := getNextFourWeeks()
@@ -181,10 +190,30 @@ func (c *RestClient) GetMenu() ([]MenuResponse, error) {
 		if err != nil {
 			log.Fatal("Error getting menus")
 		}
-		menuResponses = append(menuResponses, menuResp)
+
+		// extract fields
+		for _, mblw := range menuResp.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
+			for _, dish := range mblw.Entries {
+				edate, err := GetEmissionDateAsTime(dish.EmissionDate)
+				if err != nil {
+					log.Fatal("Error getting emission date")
+				}
+
+				// Check for dummy values. They appear if there is no menu for that day.
+				isDummy := dish.Dish.Name == "---"
+				upcomingDish := UpcomingDish{
+					OrderId: dish.ID,
+					Dish:    dish.Dish,
+					Orders:  dish.NumberOfBookings,
+					Date:    edate,
+					Dummy:   isDummy,
+				}
+				upcomingDishes = append(upcomingDishes, upcomingDish)
+			}
+		}
 	}
 
-	return menuResponses, nil
+	return upcomingDishes, nil
 }
 
 func (c *RestClient) OrderMenu(menuBlockLineEntry int) error {

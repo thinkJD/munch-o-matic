@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -22,4 +23,21 @@ func getNextFourWeeks() []MenuDates {
 	}
 
 	return weeks
+}
+
+// Handle a API inconsistency
+// Sometimes the date is an int64 sometimes a string
+func GetEmissionDateAsTime(emissionDate interface{}) (time.Time, error) {
+	switch v := emissionDate.(type) {
+	case float64:
+		return time.Unix(int64(v)/1000, (int64(v)%1000)*1e6), nil
+	case string:
+		t, err := time.Parse("2006-01-02", v)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("parsing time from string failed")
+		}
+		return t, nil
+	default:
+		return time.Time{}, fmt.Errorf("unknown type for mission_date: %T", v)
+	}
 }

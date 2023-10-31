@@ -85,9 +85,10 @@ type MenuResponse struct {
 				CalendarWeek int `json:"calendarWeek"`
 				Year         int `json:"year"`
 				Entries      []struct {
-					ID               int  `json:"id"`
-					Dish             Dish `json:"dish"`
-					NumberOfBookings int  `json:"numberOfBookings"`
+					EmissionDate     interface{} `json:"emissionDate"`
+					ID               int         `json:"id"`
+					Dish             Dish        `json:"dish"`
+					NumberOfBookings int         `json:"numberOfBookings"`
 				} `json:"entries"`
 			} `json:"menuBlockLineWeeks"`
 		} `json:"menuBlockWeek"`
