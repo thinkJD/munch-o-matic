@@ -22,7 +22,7 @@ var orderMenu = &cobra.Command{
 }
 
 func init() {
-	orderMenu.Flags().IntVarP(&dishId, "dish", "d", 0, "Dish to order")
+	orderMenu.Flags().IntVarP(&dishId, "dish", "d", 0, "Dish id to order")
 
 	menuCmd.AddCommand(orderMenu)
 }

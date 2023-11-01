@@ -20,7 +20,7 @@ var getMenu = &cobra.Command{
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Date", "Id", "Booked", "Name", "Description"})
+		table.SetHeader([]string{"Date", "Id", "Orders", "Booked", "Name", "Description"})
 		table.SetAutoMergeCells(true)
 		table.SetRowLine(true)
 
@@ -35,6 +35,7 @@ var getMenu = &cobra.Command{
 				table.Append([]string{
 					menu.Date.Format("Mon 02.01.06"),
 					fmt.Sprintf("%d", menu.OrderId),
+					fmt.Sprintf("%v", menu.Orders),
 					getBookedIndicator(menu.Booked),
 					menu.Dish.Name,
 					menu.Dish.Description})
