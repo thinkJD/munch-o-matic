@@ -169,10 +169,11 @@ type UpcomingDish struct {
 	OrderId int
 	Dish    Dish
 	Orders  int // We get the total order for each dish from the API ;-)
+	Booked  bool
 }
 
-func (c *RestClient) GetMenu() ([]UpcomingDish, error) {
-	var upcomingDishes []UpcomingDish
+func (c *RestClient) GetMenu() (map[string][]UpcomingDish, error) {
+	var upcomingDishes = map[string][]UpcomingDish{}
 
 	customer := 44897 // TODO: get this from the user object
 	nextWeeks := getNextFourWeeks()
@@ -201,14 +202,25 @@ func (c *RestClient) GetMenu() ([]UpcomingDish, error) {
 
 				// Check for dummy values. They appear if there is no menu for that day.
 				isDummy := dish.Dish.Name == "---"
+
+				// Check bookings for this week
+				isBooked := false
+				for _, booking := range menuResp.Bookings {
+					if booking.MenuBlockLineEntry.ID == dish.ID {
+						isBooked = true
+					}
+				}
+
 				upcomingDish := UpcomingDish{
 					OrderId: dish.ID,
 					Dish:    dish.Dish,
 					Orders:  dish.NumberOfBookings,
 					Date:    edate,
 					Dummy:   isDummy,
+					Booked:  isBooked,
 				}
-				upcomingDishes = append(upcomingDishes, upcomingDish)
+				dateKey := edate.Format("06-01-02")
+				upcomingDishes[dateKey] = append(upcomingDishes[dateKey], upcomingDish)
 			}
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -19,14 +20,26 @@ var getMenu = &cobra.Command{
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Date", "Id", "Name", "Description"})
-		for _, menu := range menus {
-			table.Append([]string{menu.Date.Format("Mon 02.01.06"),
-				fmt.Sprintf("%d", menu.OrderId),
-				menu.Dish.Name, menu.Dish.Description},
-			)
-		}
+		table.SetHeader([]string{"Date", "Id", "Booked", "Name", "Description"})
+		table.SetAutoMergeCells(true)
+		table.SetRowLine(true)
 
+		var dates []string
+		for date := range menus {
+			dates = append(dates, date)
+		}
+		sort.Strings(dates)
+
+		for _, date := range dates {
+			for _, menu := range menus[date] {
+				table.Append([]string{
+					menu.Date.Format("Mon 02.01.06"),
+					fmt.Sprintf("%d", menu.OrderId),
+					getBookedIndicator(menu.Booked),
+					menu.Dish.Name,
+					menu.Dish.Description})
+			}
+		}
 		table.Render()
 	},
 }
@@ -35,4 +48,11 @@ var getMenu = &cobra.Command{
 
 func init() {
 	menuCmd.AddCommand(getMenu)
+}
+
+func getBookedIndicator(b bool) string {
+	if b {
+		return "😋"
+	}
+	return " "
 }
