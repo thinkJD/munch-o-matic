@@ -6,6 +6,15 @@ type CurrentUserResponse struct {
 	} `json:"user"`
 }
 
+type Bookings struct {
+	ID                 int `json:"id"`
+	BookingPrice       int `json:"bookingPrice"`
+	MenuBlockLineEntry struct {
+		ID   int  `json:"id"`
+		Dish Dish `json:"dish"`
+	} `json:"menuBlockLineEntry"`
+}
+
 type UserResponse struct {
 	User struct {
 		ID        int    `json:"id"`
@@ -38,14 +47,7 @@ type UserResponse struct {
 				BookkeepingDate   any    `json:"bookkeepingDate"`
 				ValueDate         any    `json:"valueDate"`
 			} `json:"payments"`
-			Bookings []struct {
-				ID                 int `json:"id"`
-				BookingPrice       int `json:"bookingPrice"`
-				MenuBlockLineEntry struct {
-					ID   int  `json:"id"`
-					Dish Dish `json:"dish"`
-				} `json:"menuBlockLineEntry"`
-			} `json:"bookings"`
+			Bookings []Bookings `json:"bookings"`
 		} `json:"customer"`
 	} `json:"user"`
 }

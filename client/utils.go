@@ -41,3 +41,18 @@ func GetEmissionDateAsTime(emissionDate interface{}) (time.Time, error) {
 		return time.Time{}, fmt.Errorf("unknown type for mission_date: %T", v)
 	}
 }
+
+func GetOrderCount(Bookings []Bookings, DishId int) (count int, dish Dish, error error) {
+	for _, booking := range Bookings {
+		if DishId == booking.MenuBlockLineEntry.Dish.ID {
+			count++
+			dish = booking.MenuBlockLineEntry.Dish
+		}
+	}
+
+	if count > 0 {
+		return count, dish, nil
+	}
+
+	return 0, Dish{}, fmt.Errorf("Dish ID not found in orders")
+}
