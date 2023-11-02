@@ -10,11 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var getMenuWeeks int
+
 var getMenu = &cobra.Command{
 	Use:   "list",
 	Short: "list all menus",
 	Run: func(cmd *cobra.Command, args []string) {
-		menus, err := cli.GetMenu()
+		menus, err := cli.GetMenu(getMenuWeeks)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -48,6 +50,7 @@ var getMenu = &cobra.Command{
 // Add any command-specific flags or arguments here
 
 func init() {
+	getMenu.Flags().IntVarP(&getMenuWeeks, "weeks", "w", 4, "Get Menu for n weeks")
 	menuCmd.AddCommand(getMenu)
 }
 

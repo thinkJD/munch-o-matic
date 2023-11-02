@@ -10,11 +10,11 @@ type MenuDates struct {
 	CalendarWeek int
 }
 
-func getNextFourWeeks() []MenuDates {
+func getNextCalenderWeeks(count int) []MenuDates {
 	var weeks []MenuDates
 	currentTime := time.Now()
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < count; i++ {
 		year, week := currentTime.AddDate(0, 0, i*7).ISOWeek()
 		weeks = append(weeks, MenuDates{
 			Year:         year,

@@ -177,11 +177,11 @@ type UpcomingDish struct {
 	Booked  bool
 }
 
-func (c *RestClient) GetMenu() (map[string][]UpcomingDish, error) {
+func (c *RestClient) GetMenu(weeks int) (map[string][]UpcomingDish, error) {
 	var upcomingDishes = map[string][]UpcomingDish{}
 
 	customer := c.CustomerId
-	nextWeeks := getNextFourWeeks()
+	nextWeeks := getNextCalenderWeeks(weeks)
 
 	for _, week := range nextWeeks {
 		menuUrl := fmt.Sprintf(
