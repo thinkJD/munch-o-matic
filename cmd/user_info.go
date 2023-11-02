@@ -17,6 +17,7 @@ var userInfo = &cobra.Command{
 		}
 
 		fmt.Printf("User ID:\t%v\n", userResponse.User.ID)
+		fmt.Printf("Customer ID: \t%v\n", cli.CustomerId)
 		fmt.Printf("Login Name:\t%v\n", userResponse.User.Username)
 		fmt.Printf("First Name:\t%v\n", userResponse.User.FirstName)
 		fmt.Printf("Last name:\t%v\n", userResponse.User.LastName)

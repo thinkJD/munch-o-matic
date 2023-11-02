@@ -17,11 +17,11 @@ import (
 
 // RestClient struct to manage REST client state
 type RestClient struct {
-	Client    *http.Client
-	SessionID string
-	UserId    int
-	Customer  int
-	CookieJar *cookiejar.Jar
+	Client     *http.Client
+	SessionID  string
+	UserId     int
+	CustomerId int
+	CookieJar  *cookiejar.Jar
 }
 
 func NewClient(config Config) (*RestClient, error) {
@@ -43,25 +43,30 @@ func NewClient(config Config) (*RestClient, error) {
 	cookieUrl, err := url.Parse("https://rest.tastenext.de")
 	c.CookieJar.SetCookies(cookieUrl, []*http.Cookie{cookie})
 
+	// Check if the old SessionId works
 	c.SessionID = config.SessionCredentials.SessionID
-	// Check if the old cookie works
-	CurrentUserResponse, err := c.GetCurrentUser()
-	// If not, login again
+	currentUserResponse, err := c.GetCurrentUser()
+	// If not, login again and get a new one
 	if err != nil {
 		fmt.Println("update session token")
 		err := c.Login(config)
 		if err != nil {
 			return nil, fmt.Errorf("failed to log in")
 		}
-		// And check if it works now
-		CurrentUserResponse, err = c.GetCurrentUser()
+		// Does it work now?
+		currentUserResponse, err = c.GetCurrentUser()
 		if err != nil {
 			return nil, fmt.Errorf("failed to refresh token")
 		}
 	}
-	c.UserId = CurrentUserResponse.User.ID
-	// TODO: get this value from the menu frontend
-	c.Customer = 44897
+
+	c.UserId = currentUserResponse.User.ID
+
+	userResponse, err := c.GetUser()
+	if err != nil {
+		return &RestClient{}, fmt.Errorf("unable to load user", err)
+	}
+	c.CustomerId = userResponse.User.Customer.ID
 
 	return c, nil
 }
@@ -175,7 +180,7 @@ type UpcomingDish struct {
 func (c *RestClient) GetMenu() (map[string][]UpcomingDish, error) {
 	var upcomingDishes = map[string][]UpcomingDish{}
 
-	customer := 44897 // TODO: get this from the user object
+	customer := c.CustomerId
 	nextWeeks := getNextFourWeeks()
 
 	for _, week := range nextWeeks {
@@ -228,39 +233,39 @@ func (c *RestClient) GetMenu() (map[string][]UpcomingDish, error) {
 	return upcomingDishes, nil
 }
 
-func (c *RestClient) OrderMenu(menuBlockLineEntry int) error {
-	/*
-		If the dish is already ordered -> success
-		otherwise order the dish and check the response is it there? -> success
-		if the status field is "FAILED" -> failed (account balance)
-		return a list of all booked dishes (or just the booked dish?)
-	*/
+func (c *RestClient) OrderMenu(DishOrderId int, CancelOrder bool) error {
+	// Is the dish already ordered?
+	userResp, err := c.GetUser()
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
+	var alreadyOrdered = false
+	for _, booking := range userResp.User.Customer.Bookings {
+		if booking.MenuBlockLineEntry.ID == DishOrderId {
+			alreadyOrdered = true
+			break
+		}
+	}
 
-	var menuResp MenuResponse
+	// Check if there is something to do, return if not
+	if (alreadyOrdered && !CancelOrder) || (!alreadyOrdered && CancelOrder) {
+		return nil
+	}
 
+	// toggle order
 	bookingUrl := fmt.Sprintf(
 		"https://rest.tastenext.de/frontend/menu/order/menu-block-line-entry/%d/customer/%d",
-		menuBlockLineEntry,
-		c.Customer)
+		DishOrderId,
+		c.CustomerId)
 
-	err := c.sendRequest("GET", bookingUrl, nil, &menuResp)
+	var menuResp MenuResponse
+	err = c.sendRequest("GET", bookingUrl, nil, &menuResp)
 	if err != nil {
 		return errors.New("failed sending order request")
 	}
 
 	if menuResp.Status != "OK" {
-		// TODO: Check account balance
-		return errors.New("failed to place order")
-	}
-
-	var ack bool = false
-	for _, booking := range menuResp.Bookings {
-		if booking.MenuBlockLineEntry.ID == menuBlockLineEntry {
-			ack = true
-		}
-	}
-	if !ack {
-		return errors.New("failed to ack booking")
+		return fmt.Errorf("failed to place / remove order: %v", menuResp.Message)
 	}
 
 	return nil
