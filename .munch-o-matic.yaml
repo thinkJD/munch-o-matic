@@ -6,3 +6,4 @@ LoginCredentials:
 SessionCredentials:
   SessionID: null
   UserId: null
+  CustomerId: null

@@ -31,14 +31,13 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
-		// Update configuration if needed
-		if cfg.SessionCredentials.SessionID != cli.SessionID {
-			viper.Set("SessionCredentials.SessionID", cli.SessionID)
-			viper.Set("SessionCredentials.UserId", cli.UserId)
-			err = viper.WriteConfig()
-			if err != nil {
-				log.Fatal(err)
-			}
+		// Update configuration
+		viper.Set("SessionCredentials.SessionID", cli.SessionID)
+		viper.Set("SessionCredentials.UserId", cli.UserId)
+		viper.Set("SessionCredentials.CustomerId", cli.CustomerId)
+		err = viper.WriteConfig()
+		if err != nil {
+			log.Fatal(err)
 		}
 	},
 }
