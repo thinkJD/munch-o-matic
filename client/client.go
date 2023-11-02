@@ -180,7 +180,7 @@ type UpcomingDish struct {
 func (c *RestClient) GetMenu() (map[string][]UpcomingDish, error) {
 	var upcomingDishes = map[string][]UpcomingDish{}
 
-	customer := 44897 // TODO: get this from the user object
+	customer := c.CustomerId
 	nextWeeks := getNextFourWeeks()
 
 	for _, week := range nextWeeks {
@@ -233,34 +233,39 @@ func (c *RestClient) GetMenu() (map[string][]UpcomingDish, error) {
 	return upcomingDishes, nil
 }
 
-func (c *RestClient) OrderMenu(DishOrderId int) error {
-	// Check if the dish is already ordered
-	// Order Dish
-	var menuResp MenuResponse
+func (c *RestClient) OrderMenu(DishOrderId int, CancelOrder bool) error {
+	// Is the dish already ordered?
+	userResp, err := c.GetUser()
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
+	var alreadyOrdered = false
+	for _, booking := range userResp.User.Customer.Bookings {
+		if booking.MenuBlockLineEntry.ID == DishOrderId {
+			alreadyOrdered = true
+			break
+		}
+	}
 
+	// Check if there is something to do, return if not
+	if (alreadyOrdered && !CancelOrder) || (!alreadyOrdered && CancelOrder) {
+		return nil
+	}
+
+	// toggle order
 	bookingUrl := fmt.Sprintf(
 		"https://rest.tastenext.de/frontend/menu/order/menu-block-line-entry/%d/customer/%d",
 		DishOrderId,
 		c.CustomerId)
 
-	err := c.sendRequest("GET", bookingUrl, nil, &menuResp)
+	var menuResp MenuResponse
+	err = c.sendRequest("GET", bookingUrl, nil, &menuResp)
 	if err != nil {
 		return errors.New("failed sending order request")
 	}
 
 	if menuResp.Status != "OK" {
-		// TODO: Check account balance
-		return errors.New("failed to place order")
-	}
-
-	var ack bool = false
-	for _, booking := range menuResp.Bookings {
-		if booking.MenuBlockLineEntry.ID == DishOrderId {
-			ack = true
-		}
-	}
-	if !ack {
-		return errors.New("failed to ack booking")
+		return fmt.Errorf("failed to place / remove order: %v", menuResp.Message)
 	}
 
 	return nil
