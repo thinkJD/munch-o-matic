@@ -10,14 +10,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var getMenuWeeks int
-var getMenuWeek int
-
 var getMenu = &cobra.Command{
 	Use:   "list",
 	Short: "list all menus",
 	Run: func(cmd *cobra.Command, args []string) {
-		menus, err := cli.GetMenu(getMenuWeeks)
+		if menuDay != "" && menuWeeks != 0 {
+			menuWeeks = 0
+			fmt.Println("--day and --week are mutually exclusive. --week is ignored")
+		}
+
+		if menuDay != "" {
+			// get menu for a day
+			fmt.Print("Implement me")
+		} else {
+			// Get menu for a week
+		}
+
+		menus, err := cli.GetMenu(menuWeeks)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -52,7 +61,8 @@ var getMenu = &cobra.Command{
 // Add any command-specific flags or arguments here
 
 func init() {
-	getMenu.Flags().IntVarP(&getMenuWeeks, "weeks", "w", 4, "Get Menu for n weeks")
+	getMenu.Flags().IntVarP(&menuWeeks, "weeks", "w", 0, "Get Menu for n weeks")
+	getMenu.Flags().StringVarP(&menuDay, "day", "d", "", "Get Menu for this day. Format: 01-02-23")
 	menuCmd.AddCommand(getMenu)
 }
 

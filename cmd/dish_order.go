@@ -8,8 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var orderDishCancelOrder bool
-
 var orderDish = &cobra.Command{
 	Use:   "order",
 	Short: "Order or cancel a dish from the menu",
@@ -19,7 +17,7 @@ var orderDish = &cobra.Command{
 			cmd.Usage()
 			os.Exit(1)
 		}
-		err := cli.OrderMenu(dishCmdOrderId, orderDishCancelOrder)
+		err := cli.OrderMenu(orderId, cancel)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -28,8 +26,8 @@ var orderDish = &cobra.Command{
 }
 
 func init() {
-	orderDish.Flags().IntVarP(&dishCmdOrderId, "order-id", "o", 0, "OrderId of the dish")
-	orderDish.Flags().BoolVar(&orderDishCancelOrder, "c", false, "Cancel the order")
+	orderDish.Flags().IntVarP(&orderId, "order-id", "o", 0, "OrderId of the dish")
+	orderDish.Flags().BoolVar(&cancel, "c", false, "Cancel the order")
 
 	dishCmd.AddCommand(orderDish)
 }
