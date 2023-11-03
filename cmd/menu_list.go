@@ -11,6 +11,7 @@ import (
 )
 
 var getMenuWeeks int
+var getMenuWeek int
 
 var getMenu = &cobra.Command{
 	Use:   "list",
