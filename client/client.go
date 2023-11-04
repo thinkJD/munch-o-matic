@@ -177,55 +177,91 @@ type UpcomingDish struct {
 	Booked  bool
 }
 
-func (c *RestClient) GetMenu(weeks int) (map[string][]UpcomingDish, error) {
+func (c *RestClient) GetMenuWeek(Week int, Year int) (map[string][]UpcomingDish, error) {
 	var upcomingDishes = map[string][]UpcomingDish{}
 
 	customer := c.CustomerId
+
+	menuUrl := fmt.Sprintf(
+		"https://rest.tastenext.de/frontend/menu/get-personal-menu-week/calendar-week/%d/year/%d/customer/%d/menu-block/14",
+		Week,
+		Year,
+		customer,
+	)
+
+	var menuResp MenuResponse
+	err := c.sendRequest("GET", menuUrl, nil, &menuResp)
+	if err != nil {
+		log.Fatal("Error getting menus")
+	}
+
+	// extract fields
+	for _, mblw := range menuResp.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
+		for _, dish := range mblw.Entries {
+			edate, err := GetEmissionDateAsTime(dish.EmissionDate)
+			if err != nil {
+				log.Fatal("Error getting emission date")
+			}
+
+			// Check for dummy values. They appear if there is no menu for that day.
+			isDummy := dish.Dish.Name == "---"
+
+			// Check bookings for this week
+			isBooked := false
+			for _, booking := range menuResp.Bookings {
+				if booking.MenuBlockLineEntry.ID == dish.ID {
+					isBooked = true
+				}
+			}
+
+			upcomingDish := UpcomingDish{
+				OrderId: dish.ID,
+				Dish:    dish.Dish,
+				Orders:  dish.NumberOfBookings,
+				Date:    edate,
+				Dummy:   isDummy,
+				Booked:  isBooked,
+			}
+			dateKey := edate.Format("06-01-02")
+			upcomingDishes[dateKey] = append(upcomingDishes[dateKey], upcomingDish)
+		}
+	}
+
+	return upcomingDishes, nil
+}
+
+func (c *RestClient) GetMenuDay(Day time.Time) (map[string][]UpcomingDish, error) {
+	var retVal = map[string][]UpcomingDish{}
+
+	menuWeek, err := c.GetMenuWeek(Day.ISOWeek())
+	if err != nil {
+		return retVal, fmt.Errorf("error: %w", err)
+	}
+
+	for k, v := range menuWeek {
+		if _, ok := retVal[k]; !ok {
+			retVal[k] = v
+		}
+	}
+
+	return retVal, nil
+}
+
+func (c *RestClient) GetMenuWeeks(weeks int) (map[string][]UpcomingDish, error) {
+	var upcomingDishes = map[string][]UpcomingDish{}
+
 	nextWeeks := getNextCalenderWeeks(weeks)
 
 	for _, week := range nextWeeks {
-		menuUrl := fmt.Sprintf(
-			"https://rest.tastenext.de/frontend/menu/get-personal-menu-week/calendar-week/%d/year/%d/customer/%d/menu-block/14",
-			week.CalendarWeek,
-			week.Year,
-			customer,
-		)
-
-		var menuResp MenuResponse
-		err := c.sendRequest("GET", menuUrl, nil, &menuResp)
+		menuWeek, err := c.GetMenuWeek(week.CalendarWeek, week.Year)
 		if err != nil {
-			log.Fatal("Error getting menus")
+			fmt.Errorf("Error getting weeks")
 		}
 
-		// extract fields
-		for _, mblw := range menuResp.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
-			for _, dish := range mblw.Entries {
-				edate, err := GetEmissionDateAsTime(dish.EmissionDate)
-				if err != nil {
-					log.Fatal("Error getting emission date")
-				}
-
-				// Check for dummy values. They appear if there is no menu for that day.
-				isDummy := dish.Dish.Name == "---"
-
-				// Check bookings for this week
-				isBooked := false
-				for _, booking := range menuResp.Bookings {
-					if booking.MenuBlockLineEntry.ID == dish.ID {
-						isBooked = true
-					}
-				}
-
-				upcomingDish := UpcomingDish{
-					OrderId: dish.ID,
-					Dish:    dish.Dish,
-					Orders:  dish.NumberOfBookings,
-					Date:    edate,
-					Dummy:   isDummy,
-					Booked:  isBooked,
-				}
-				dateKey := edate.Format("06-01-02")
-				upcomingDishes[dateKey] = append(upcomingDishes[dateKey], upcomingDish)
+		// Merge maps
+		for k, v := range menuWeek {
+			if _, ok := upcomingDishes[k]; !ok {
+				upcomingDishes[k] = v
 			}
 		}
 	}

@@ -19,14 +19,7 @@ var getMenu = &cobra.Command{
 			fmt.Println("--day and --week are mutually exclusive. --week is ignored")
 		}
 
-		if menuDay != "" {
-			// get menu for a day
-			fmt.Print("Implement me")
-		} else {
-			// Get menu for a week
-		}
-
-		menus, err := cli.GetMenu(menuWeeks)
+		menus, err := cli.GetMenuWeeks(menuWeeks)
 		if err != nil {
 			log.Fatal(err)
 		}
