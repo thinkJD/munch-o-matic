@@ -17,7 +17,7 @@ var orderDish = &cobra.Command{
 			cmd.Usage()
 			os.Exit(1)
 		}
-		err := cli.OrderMenu(orderId, cancel)
+		err := cli.OrderDish(orderId, cancel)
 		if err != nil {
 			log.Fatal(err)
 		}
