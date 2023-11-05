@@ -1,4 +1,4 @@
-package client
+package types
 
 // Config Global configuration struct
 type Config struct {
@@ -21,8 +21,10 @@ type SessionCredentials struct {
 
 // Daemon related
 type Job struct {
+	Type     string
 	Name     string
 	Schedule string
+	Params   map[string]interface{}
 }
 
 type Daemon struct {

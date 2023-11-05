@@ -11,4 +11,11 @@ SessionCredentials:
 Daemon:
   Jobs:
     - Name: "Check Account Balance"
-      Schedule: "* * * * *"
+      Type: CheckBalance
+      Schedule: "* * * * * *"
+      Params:
+        email: my@mail.de
+        minBalance: 5
+    - Name: "Order Food"
+      Type: Order
+      Schedule: "*/45 * * * * *"
