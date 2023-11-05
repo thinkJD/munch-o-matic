@@ -1,5 +1,13 @@
 package client
 
+// Config Global configuration struct
+type Config struct {
+	LoginCredentials   LoginCredentials
+	SessionCredentials SessionCredentials
+	Daemon             Daemon
+}
+
+// Client related
 type LoginCredentials struct {
 	User     string
 	Password string
@@ -11,7 +19,12 @@ type SessionCredentials struct {
 	CustomerId int
 }
 
-type Config struct {
-	LoginCredentials   LoginCredentials
-	SessionCredentials SessionCredentials
+// Daemon related
+type Job struct {
+	Name     string
+	Schedule string
+}
+
+type Daemon struct {
+	Jobs []Job
 }

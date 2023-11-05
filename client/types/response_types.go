@@ -1,4 +1,4 @@
-package client
+package types
 
 type CurrentUserResponse struct {
 	User struct {

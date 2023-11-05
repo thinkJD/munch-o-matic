@@ -7,3 +7,8 @@ SessionCredentials:
   SessionID: null
   UserId: null
   CustomerId: null
+
+Daemon:
+  Jobs:
+    - Name: "Check Account Balance"
+      Schedule: "* * * * *"
