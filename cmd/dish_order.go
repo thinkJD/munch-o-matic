@@ -27,7 +27,7 @@ var orderDish = &cobra.Command{
 
 func init() {
 	orderDish.Flags().IntVarP(&orderId, "order-id", "o", 0, "OrderId of the dish")
-	orderDish.Flags().BoolVar(&cancel, "c", false, "Cancel the order")
+	orderDish.Flags().BoolVarP(&cancel, "cancel", "c", false, "cancel order")
 
 	dishCmd.AddCommand(orderDish)
 }

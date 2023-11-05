@@ -226,7 +226,6 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish,
 			upcomingDishes[dateKey] = append(upcomingDishes[dateKey], upcomingDish)
 		}
 	}
-
 	return upcomingDishes, nil
 }
 
@@ -237,7 +236,7 @@ func (c *RestClient) GetMenuWeeks(weeks int) (map[string][]UpcomingDish, error) 
 	nextWeeks := getNextCalenderWeeks(weeks)
 
 	for _, week := range nextWeeks {
-		menuWeek, err := c.GetMenuWeek(week.CalendarWeek, week.Year)
+		menuWeek, err := c.GetMenuWeek(week.Year, week.CalendarWeek)
 		if err != nil {
 			fmt.Errorf("Error getting weeks")
 		}
@@ -302,6 +301,9 @@ func (c *RestClient) OrderDish(DishOrderId int, CancelOrder bool) error {
 		return errors.New("failed sending order request")
 	}
 
+	if menuResp.Message == "app.messages.changed-booking-status.insufficient-money" {
+		return fmt.Errorf("not enough account balance to place order")
+	}
 	if menuResp.Status != "OK" {
 		return fmt.Errorf("failed to place / remove order: %v", menuResp.Message)
 	}

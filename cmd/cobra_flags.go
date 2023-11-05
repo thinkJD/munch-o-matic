@@ -1,7 +1,11 @@
 package cmd
 
+var cancel bool
+var dryRun bool
+
 var dishId int
 var orderId int
-var menuDay string
 var menuWeeks int
-var cancel bool
+
+var menuDay string
+var autoOrderStrategy string
