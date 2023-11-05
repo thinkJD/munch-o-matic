@@ -12,7 +12,7 @@ var orderDish = &cobra.Command{
 	Use:   "order",
 	Short: "Order or cancel a dish from the menu",
 	Run: func(cmd *cobra.Command, args []string) {
-		if dishCmdOrderId == 0 {
+		if orderId == 0 {
 			fmt.Println("Error: The --order-id flag is mandatory")
 			cmd.Usage()
 			os.Exit(1)
