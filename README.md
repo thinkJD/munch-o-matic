@@ -1,3 +1,3 @@
 # munch-o-matic
 
-Order food with less efford.
+Order food with less effort.
