@@ -1,4 +1,3 @@
-// client/client.go
 package client
 
 import (
@@ -15,7 +14,6 @@ import (
 	"time"
 )
 
-// RestClient struct to manage REST client state
 type RestClient struct {
 	Client     *http.Client
 	SessionID  string
@@ -45,16 +43,16 @@ func NewClient(config Config) (*RestClient, error) {
 
 	// Check if the old SessionId works
 	c.SessionID = config.SessionCredentials.SessionID
-	currentUserResponse, err := c.GetCurrentUser()
+	currentUserResponse, err := c.getCurrentUser()
 	// If not, login again and get a new one
 	if err != nil {
 		fmt.Println("update session token")
-		err := c.Login(config)
+		err := c.login(config)
 		if err != nil {
 			return nil, fmt.Errorf("failed to log in")
 		}
 		// Does it work now?
-		currentUserResponse, err = c.GetCurrentUser()
+		currentUserResponse, err = c.getCurrentUser()
 		if err != nil {
 			return nil, fmt.Errorf("failed to refresh token")
 		}
@@ -71,6 +69,7 @@ func NewClient(config Config) (*RestClient, error) {
 	return c, nil
 }
 
+// Private
 func (c *RestClient) sendRequest(method, urlStr string, body io.Reader, result interface{}) error {
 	if c.Client == nil {
 		return fmt.Errorf("client not initialized. Please login first")
@@ -104,8 +103,7 @@ func (c *RestClient) sendRequest(method, urlStr string, body io.Reader, result i
 	return nil
 }
 
-// Login performs a login operation and stores the sessionID.
-func (c *RestClient) Login(config Config) error {
+func (c *RestClient) login(config Config) error {
 	// Prepare the multipart form data
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
@@ -130,6 +128,7 @@ func (c *RestClient) Login(config Config) error {
 	}
 	defer resp.Body.Close()
 
+	// Get sessionId from cookie
 	foundCookie := false
 	for _, cookie := range c.CookieJar.Cookies(req.URL) {
 		if cookie.Name == "JSESSIONID" {
@@ -145,8 +144,7 @@ func (c *RestClient) Login(config Config) error {
 	return nil
 }
 
-// GetUser performs a GET request to get the current user
-func (c *RestClient) GetCurrentUser() (CurrentUserResponse, error) {
+func (c *RestClient) getCurrentUser() (CurrentUserResponse, error) {
 	var currentUserResp CurrentUserResponse
 
 	err := c.sendRequest("GET", "https://rest.tastenext.de/backend/user/current-user", nil, &currentUserResp)
@@ -157,6 +155,7 @@ func (c *RestClient) GetCurrentUser() (CurrentUserResponse, error) {
 	return currentUserResp, nil
 }
 
+// Public
 func (c *RestClient) GetUser() (UserResponse, error) {
 	var userResp UserResponse
 
@@ -269,7 +268,7 @@ func (c *RestClient) GetMenuDay(Day time.Time) (map[string][]UpcomingDish, error
 	return retVal, nil
 }
 
-// Order or cancel
+// Order or cancel a dish
 func (c *RestClient) OrderDish(DishOrderId int, CancelOrder bool) error {
 	// Is the dish already ordered?
 	userResp, err := c.GetUser()

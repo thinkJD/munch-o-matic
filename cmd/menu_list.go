@@ -42,8 +42,6 @@ var getMenu = &cobra.Command{
 	},
 }
 
-// Add any command-specific flags or arguments here
-
 func init() {
 	getMenu.Flags().IntVarP(&menuWeeks, "weeks", "w", 0, "Get Menu for n weeks")
 	getMenu.Flags().StringVarP(&menuDay, "day", "d", "", "Get Menu for this day. Format: 01-02-23")
