@@ -62,7 +62,7 @@ func NewClient(config Config) (*RestClient, error) {
 
 	userResponse, err := c.GetUser()
 	if err != nil {
-		return &RestClient{}, fmt.Errorf("unable to load user", err)
+		return &RestClient{}, fmt.Errorf("unable to load user")
 	}
 	c.CustomerId = userResponse.User.Customer.ID
 
