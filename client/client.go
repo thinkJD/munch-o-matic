@@ -177,55 +177,74 @@ type UpcomingDish struct {
 	Booked  bool
 }
 
-func (c *RestClient) GetMenu(weeks int) (map[string][]UpcomingDish, error) {
+// We can only get one whole week from the API
+func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish, error) {
 	var upcomingDishes = map[string][]UpcomingDish{}
 
 	customer := c.CustomerId
+
+	menuUrl := fmt.Sprintf(
+		"https://rest.tastenext.de/frontend/menu/get-personal-menu-week/calendar-week/%d/year/%d/customer/%d/menu-block/14",
+		Week,
+		Year,
+		customer,
+	)
+
+	var menuResp MenuResponse
+	err := c.sendRequest("GET", menuUrl, nil, &menuResp)
+	if err != nil {
+		log.Fatal("Error getting menus")
+	}
+
+	// extract fields
+	for _, mblw := range menuResp.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
+		for _, dish := range mblw.Entries {
+			edate, err := GetEmissionDateAsTime(dish.EmissionDate)
+			if err != nil {
+				log.Fatal("Error getting emission date")
+			}
+			// Check for dummy values. They appear if there is no menu for that day.
+			isDummy := dish.Dish.Name == "---"
+			// Flag already booked dishes
+			// TODO: This can be done with the UserResponse too
+			isBooked := false
+			for _, booking := range menuResp.Bookings {
+				if booking.MenuBlockLineEntry.ID == dish.ID {
+					isBooked = true
+				}
+			}
+			// Append upcoming dishes
+			upcomingDish := UpcomingDish{
+				OrderId: dish.ID,
+				Dish:    dish.Dish,
+				Orders:  dish.NumberOfBookings,
+				Date:    edate,
+				Dummy:   isDummy,
+				Booked:  isBooked,
+			}
+			dateKey := edate.Format("06-01-02")
+			upcomingDishes[dateKey] = append(upcomingDishes[dateKey], upcomingDish)
+		}
+	}
+	return upcomingDishes, nil
+}
+
+// Get menu for the next n calender weeks
+func (c *RestClient) GetMenuWeeks(weeks int) (map[string][]UpcomingDish, error) {
+	var upcomingDishes = map[string][]UpcomingDish{}
+
 	nextWeeks := getNextCalenderWeeks(weeks)
 
 	for _, week := range nextWeeks {
-		menuUrl := fmt.Sprintf(
-			"https://rest.tastenext.de/frontend/menu/get-personal-menu-week/calendar-week/%d/year/%d/customer/%d/menu-block/14",
-			week.CalendarWeek,
-			week.Year,
-			customer,
-		)
-
-		var menuResp MenuResponse
-		err := c.sendRequest("GET", menuUrl, nil, &menuResp)
+		menuWeek, err := c.GetMenuWeek(week.Year, week.CalendarWeek)
 		if err != nil {
-			log.Fatal("Error getting menus")
+			fmt.Errorf("Error getting weeks")
 		}
 
-		// extract fields
-		for _, mblw := range menuResp.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
-			for _, dish := range mblw.Entries {
-				edate, err := GetEmissionDateAsTime(dish.EmissionDate)
-				if err != nil {
-					log.Fatal("Error getting emission date")
-				}
-
-				// Check for dummy values. They appear if there is no menu for that day.
-				isDummy := dish.Dish.Name == "---"
-
-				// Check bookings for this week
-				isBooked := false
-				for _, booking := range menuResp.Bookings {
-					if booking.MenuBlockLineEntry.ID == dish.ID {
-						isBooked = true
-					}
-				}
-
-				upcomingDish := UpcomingDish{
-					OrderId: dish.ID,
-					Dish:    dish.Dish,
-					Orders:  dish.NumberOfBookings,
-					Date:    edate,
-					Dummy:   isDummy,
-					Booked:  isBooked,
-				}
-				dateKey := edate.Format("06-01-02")
-				upcomingDishes[dateKey] = append(upcomingDishes[dateKey], upcomingDish)
+		// Merge maps
+		for k, v := range menuWeek {
+			if _, ok := upcomingDishes[k]; !ok {
+				upcomingDishes[k] = v
 			}
 		}
 	}
@@ -233,7 +252,25 @@ func (c *RestClient) GetMenu(weeks int) (map[string][]UpcomingDish, error) {
 	return upcomingDishes, nil
 }
 
-func (c *RestClient) OrderMenu(DishOrderId int, CancelOrder bool) error {
+// Get Menu for one Day
+func (c *RestClient) GetMenuDay(Day time.Time) (map[string][]UpcomingDish, error) {
+	var retVal = map[string][]UpcomingDish{}
+
+	menuWeek, err := c.GetMenuWeek(Day.ISOWeek())
+	if err != nil {
+		return retVal, fmt.Errorf("error: %w", err)
+	}
+
+	dateKey := Day.Format("06-01-02")
+	retVal[dateKey] = menuWeek[dateKey]
+	if len(retVal) == 0 {
+		return retVal, fmt.Errorf("no dishes found for this day")
+	}
+	return retVal, nil
+}
+
+// Order or cancel
+func (c *RestClient) OrderDish(DishOrderId int, CancelOrder bool) error {
 	// Is the dish already ordered?
 	userResp, err := c.GetUser()
 	if err != nil {
@@ -252,7 +289,7 @@ func (c *RestClient) OrderMenu(DishOrderId int, CancelOrder bool) error {
 		return nil
 	}
 
-	// toggle order
+	// Toggle booking
 	bookingUrl := fmt.Sprintf(
 		"https://rest.tastenext.de/frontend/menu/order/menu-block-line-entry/%d/customer/%d",
 		DishOrderId,
@@ -264,6 +301,9 @@ func (c *RestClient) OrderMenu(DishOrderId int, CancelOrder bool) error {
 		return errors.New("failed sending order request")
 	}
 
+	if menuResp.Message == "app.messages.changed-booking-status.insufficient-money" {
+		return fmt.Errorf("not enough account balance to place order")
+	}
 	if menuResp.Status != "OK" {
 		return fmt.Errorf("failed to place / remove order: %v", menuResp.Message)
 	}

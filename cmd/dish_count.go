@@ -13,20 +13,19 @@ var countDish = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		userResp, err := cli.GetUser()
 		if err != nil {
-			fmt.Errorf("Error %v", err)
+			fmt.Println(err)
 		}
 
 		dishCount, dish, err := client.GetOrderCount(userResp.User.Customer.Bookings, dishId)
 		if err != nil {
-			fmt.Errorf("Error calculating dish count: %w", err)
+			fmt.Printf("Error calculating dish count: %v\n", err)
+		} else {
+			fmt.Printf("%v was ordered %v times.\n", dish.Name, dishCount)
 		}
-
-		fmt.Printf("%v was ordered %v times.\n", dish.Name, dishCount)
-
 	},
 }
 
 func init() {
 	countDish.Flags().IntVar(&dishId, "dish", 0, "DishId")
-	menuCmd.AddCommand(countDish)
+	dishCmd.AddCommand(countDish)
 }

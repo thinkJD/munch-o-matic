@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -21,7 +22,6 @@ func getNextCalenderWeeks(count int) []MenuDates {
 			CalendarWeek: week,
 		})
 	}
-
 	return weeks
 }
 
@@ -42,6 +42,7 @@ func GetEmissionDateAsTime(emissionDate interface{}) (time.Time, error) {
 	}
 }
 
+// How often the dish was ordered in the past
 func GetOrderCount(Bookings []Bookings, DishId int) (count int, dish Dish, error error) {
 	for _, booking := range Bookings {
 		if DishId == booking.MenuBlockLineEntry.Dish.ID {
@@ -55,4 +56,61 @@ func GetOrderCount(Bookings []Bookings, DishId int) (count int, dish Dish, error
 	}
 
 	return 0, Dish{}, fmt.Errorf("Dish ID not found in orders")
+}
+
+type AutoOrderStrategy string
+
+const (
+	// The schools favorites, most accurate 1 Week before
+	SchoolFav AutoOrderStrategy = "SchoolFav"
+	// Personal favorites based on recent orders
+	PersonalFav AutoOrderStrategy = "PersonalFav"
+	// Random pick
+	Random AutoOrderStrategy = "Random"
+)
+
+func ChooseDishesByStrategy(Strategy string, UpcomingDishes map[string][]UpcomingDish) (map[int]UpcomingDish, error) {
+	// Helper function to decide if menu should be skipped
+	shouldSkipMenu := func(menu []UpcomingDish) bool {
+		for _, dish := range menu {
+			if dish.Booked || dish.Dummy {
+				return true
+			}
+		}
+		return false
+	}
+
+	retVal := map[int]UpcomingDish{}
+
+	// Iterate over the dishes of the day
+	for _, menu := range UpcomingDishes {
+		if shouldSkipMenu(menu) {
+			continue
+		}
+
+		// Choose dish based on the strategy
+		switch Strategy {
+
+		case "SchoolFav":
+			var maxPos, maxVal int
+			for i, dish := range menu {
+				if dish.Orders > maxVal {
+					maxPos = i
+					maxVal = dish.Orders
+				}
+			}
+			retVal[menu[maxPos].OrderId] = menu[maxPos]
+
+		case "Random":
+			randomInt := rand.Intn(len(menu))
+			retVal[menu[randomInt].OrderId] = menu[randomInt]
+
+		case "PersonalFav":
+			fmt.Println("Implement me")
+
+		default:
+			return map[int]UpcomingDish{}, fmt.Errorf("%v is not a valid strategy", Strategy)
+		}
+	}
+	return retVal, nil
 }

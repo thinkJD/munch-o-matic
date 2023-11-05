@@ -9,9 +9,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var getMenu = &cobra.Command{
-	Use:   "list",
-	Short: "list all menus",
+var autoOrderMenu = &cobra.Command{
+	Use:   "auto-order",
+	Short: "Order dishes automatically",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(menuDay) > 0 && menuWeeks != 0 {
 			menuWeeks = 0
@@ -38,22 +38,32 @@ var getMenu = &cobra.Command{
 			log.Fatal("Please provide --day or --weeks")
 		}
 
-		renderUpcomingDishesTable(upcomingDishes)
+		dishes, err := client.ChooseDishesByStrategy(autoOrderStrategy, upcomingDishes)
+		if err != nil {
+			log.Fatal("Error picking menues")
+		}
+
+		//TODO; Check account balance
+		for _, dish := range dishes {
+			if !dryRun {
+				err := cli.OrderDish(dish.OrderId, false)
+				if err != nil {
+					log.Fatal("Could not order")
+				}
+			}
+			fmt.Printf("%v:\t%v\n", dish.OrderId, dish.Dish.Name)
+		}
+
 	},
 }
 
 // Add any command-specific flags or arguments here
 
 func init() {
-	getMenu.Flags().IntVarP(&menuWeeks, "weeks", "w", 0, "Get Menu for n weeks")
-	getMenu.Flags().StringVarP(&menuDay, "day", "d", "", "Get Menu for this day. Format: 01-02-23")
+	autoOrderMenu.Flags().IntVarP(&menuWeeks, "weeks", "w", 0, "Get Menu for n weeks")
+	autoOrderMenu.Flags().StringVarP(&menuDay, "day", "d", "", "Get Menu for this day. Format: 01-02-23")
 
-	menuCmd.AddCommand(getMenu)
-}
-
-func getBookedIndicator(b bool) string {
-	if b {
-		return "😋"
-	}
-	return " "
+	autoOrderMenu.Flags().StringVarP(&autoOrderStrategy, "strategy", "s", "Random", "Strategy used to pick dish")
+	autoOrderMenu.Flags().BoolVar(&dryRun, "dry-run", false, "Do not order but print out dish picks")
+	menuCmd.AddCommand(autoOrderMenu)
 }
