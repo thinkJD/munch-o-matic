@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	cliUtils "munch-o-matic/client/utils"
+	cliUtils "munch-o-matic/core"
 
 	"github.com/spf13/cobra"
 )

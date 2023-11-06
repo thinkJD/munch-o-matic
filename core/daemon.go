@@ -1,8 +1,9 @@
-package utils
+package core
 
 import (
 	"errors"
 	"fmt"
+	"munch-o-matic/client"
 	. "munch-o-matic/client/types"
 	"time"
 
@@ -37,7 +38,7 @@ func Run(config Config) error {
 				return fmt.Errorf("invalid parameter types for Order")
 			}
 			_, err := c.AddFunc(job.Schedule, func() {
-				orderFood(statusChan, strategy, weeks)
+				orderFood(statusChan, strategy, weeks, config)
 			})
 			if err != nil {
 				return fmt.Errorf("error adding job: %w", err)
@@ -54,6 +55,7 @@ func Run(config Config) error {
 	}()
 
 	c.Start()
+	fmt.Println("Next job execution: ", c.Entries()[0].Next)
 	// Let it run for 2 minutes to see a couple of executions
 	time.Sleep(2 * time.Minute)
 	c.Stop()
@@ -61,8 +63,30 @@ func Run(config Config) error {
 	return nil
 }
 
-func orderFood(ch chan string, Strategy string, WeeksInAdvance int) {
-	// Simulating ordering food
+func orderFood(ch chan string, Strategy string, WeeksInAdvance int, ClientConfig Config) {
+	c, err := client.NewClient(ClientConfig)
+	if err != nil {
+		ch <- fmt.Sprintf("auto-order error: %w", err)
+	}
+
+	menu, err := c.GetMenuWeeks(WeeksInAdvance)
+	if err != nil {
+		ch <- fmt.Sprintf("auto-order error: %w", err)
+	}
+
+	dishes, err := client.ChooseDishesByStrategy(Strategy, menu)
+	if err != nil {
+		ch <- fmt.Sprintf("auto-order error: %w", err)
+	}
+	fmt.Println(dishes)
+	/*
+		for _, dish := range dishes {
+			err := c.OrderDish(dish.OrderId, false)
+			if err != nil {
+				ch <- fmt.Sprintf("Could not order")
+			}
+		}
+	*/
 	ch <- fmt.Sprintf("Food ordered with %v strategy, for %v weeks", Strategy, WeeksInAdvance)
 }
 

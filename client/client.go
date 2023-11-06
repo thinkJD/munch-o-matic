@@ -9,7 +9,6 @@ import (
 	"log"
 	"mime/multipart"
 	. "munch-o-matic/client/types"
-	"munch-o-matic/client/utils"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -191,7 +190,7 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish,
 	// extract fields
 	for _, mblw := range menuResp.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
 		for _, dish := range mblw.Entries {
-			edate, err := utils.GetEmissionDateAsTime(dish.EmissionDate)
+			edate, err := GetEmissionDateAsTime(dish.EmissionDate)
 			if err != nil {
 				log.Fatal("Error getting emission date")
 			}
@@ -225,7 +224,7 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish,
 func (c *RestClient) GetMenuWeeks(weeks int) (map[string][]UpcomingDish, error) {
 	var upcomingDishes = map[string][]UpcomingDish{}
 
-	nextWeeks := utils.GetNextCalenderWeeks(weeks)
+	nextWeeks := GetNextCalenderWeeks(weeks)
 
 	for _, week := range nextWeeks {
 		menuWeek, err := c.GetMenuWeek(week.Year, week.CalendarWeek)
