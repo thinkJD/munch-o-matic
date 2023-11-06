@@ -1,8 +1,9 @@
-package client
+package utils
 
 import (
 	"fmt"
 	"math/rand"
+	. "munch-o-matic/client/types"
 	"time"
 )
 
@@ -12,7 +13,7 @@ type MenuDates struct {
 }
 
 // Calculate the calendar weeks from now to count
-func getNextCalenderWeeks(count int) []MenuDates {
+func GetNextCalenderWeeks(count int) []MenuDates {
 	var weeks []MenuDates
 	currentTime := time.Now()
 

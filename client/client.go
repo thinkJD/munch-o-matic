@@ -8,6 +8,8 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
+	. "munch-o-matic/client/types"
+	"munch-o-matic/client/utils"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -167,15 +169,6 @@ func (c *RestClient) GetUser() (UserResponse, error) {
 	return userResp, nil
 }
 
-type UpcomingDish struct {
-	Dummy   bool
-	Date    time.Time
-	OrderId int
-	Dish    Dish
-	Orders  int // We get the total order for each dish from the API ;-)
-	Booked  bool
-}
-
 // We can only get one whole week from the API
 func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish, error) {
 	var upcomingDishes = map[string][]UpcomingDish{}
@@ -198,7 +191,7 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish,
 	// extract fields
 	for _, mblw := range menuResp.MenuBlockWeekWrapper.MenuBlockWeek.MenuBlockLineWeeks {
 		for _, dish := range mblw.Entries {
-			edate, err := GetEmissionDateAsTime(dish.EmissionDate)
+			edate, err := utils.GetEmissionDateAsTime(dish.EmissionDate)
 			if err != nil {
 				log.Fatal("Error getting emission date")
 			}
@@ -232,7 +225,7 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish,
 func (c *RestClient) GetMenuWeeks(weeks int) (map[string][]UpcomingDish, error) {
 	var upcomingDishes = map[string][]UpcomingDish{}
 
-	nextWeeks := getNextCalenderWeeks(weeks)
+	nextWeeks := utils.GetNextCalenderWeeks(weeks)
 
 	for _, week := range nextWeeks {
 		menuWeek, err := c.GetMenuWeek(week.Year, week.CalendarWeek)

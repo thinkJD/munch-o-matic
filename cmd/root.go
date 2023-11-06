@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"munch-o-matic/client"
+	. "munch-o-matic/client/types"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -13,7 +14,7 @@ import (
 )
 
 var cfgFile string
-var cfg client.Config
+var cfg Config
 var cli *client.RestClient
 
 var rootCmd = &cobra.Command{
@@ -28,7 +29,8 @@ var rootCmd = &cobra.Command{
 		cli, err = client.NewClient(cfg)
 		if err != nil {
 			fmt.Println("Failed to init client:", err)
-			return
+			fmt.Println("Please check your munch-o-matic configuration")
+			log.Fatal(err)
 		}
 
 		// Update configuration

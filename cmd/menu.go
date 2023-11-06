@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"munch-o-matic/client"
+	. "munch-o-matic/client/types"
 	"os"
 	"sort"
 
@@ -19,7 +19,7 @@ func init() {
 	rootCmd.AddCommand(menuCmd)
 }
 
-func renderUpcomingDishesTable(UpcomingDishes map[string][]client.UpcomingDish) {
+func renderUpcomingDishesTable(UpcomingDishes map[string][]UpcomingDish) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Date", "OrderId", "Booked", "Name", "Description", "Orders", "DishId"})
 	table.SetAutoMergeCells(true)

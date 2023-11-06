@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"munch-o-matic/client"
+
+	. "munch-o-matic/client/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +17,7 @@ var countDish = &cobra.Command{
 			fmt.Println(err)
 		}
 
-		dishCount, dish, err := client.GetOrderCount(userResp.User.Customer.Bookings, dishId)
+		dishCount, dish, err := GetOrderCount(userResp.User.Customer.Bookings, dishId)
 		if err != nil {
 			fmt.Printf("Error calculating dish count: %v\n", err)
 		} else {

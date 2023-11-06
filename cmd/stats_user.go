@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var userInfo = &cobra.Command{
-	Use:   "info",
-	Short: "TasteNext account login",
+var userStats = &cobra.Command{
+	Use:   "user",
+	Short: "Some user related statistics",
 	Run: func(cmd *cobra.Command, args []string) {
 		userResponse, err := cli.GetUser()
 		if err != nil {
@@ -36,5 +36,5 @@ var userInfo = &cobra.Command{
 // Add any command-specific flags or arguments here
 
 func init() {
-	userCmd.AddCommand(userInfo)
+	statsCmd.AddCommand(userStats)
 }

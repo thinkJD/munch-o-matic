@@ -12,6 +12,7 @@ Usage:
 
 Available Commands:
   completion  Generate the autocompletion script for the specified shell
+  daemon      Run munch-o-matic in daemon mode
   dish        Operations related to dishes
   help        Help about any command
   menu        Operations related to menus
