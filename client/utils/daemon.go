@@ -32,7 +32,7 @@ func Run(config Config) error {
 
 		case "Order":
 			strategy, ok1 := job.Params["strategy"].(string)
-			weeks, ok2 := job.Params["weeksinadvance"].(int)
+			weeks, ok2 := job.Params["weeks"].(int)
 			if !ok1 || !ok2 {
 				return fmt.Errorf("invalid parameter types for Order")
 			}
@@ -90,17 +90,17 @@ func ValidateConfig(config Daemon) error {
 
 		switch job.Type {
 		case "CheckBalance":
-			if email, ok := job.Params["Email"].(string); !ok || email == "" {
+			if email, ok := job.Params["email"].(string); !ok || email == "" {
 				return fmt.Errorf("CheckBalance job '%v' is missing or has an invalid Email", job.Name)
 			}
-			if minBalance, ok := job.Params["MinBalance"].(int); !ok || minBalance <= 0 {
+			if minBalance, ok := job.Params["minbalance"].(int); !ok || minBalance <= 0 {
 				return fmt.Errorf("CheckBalance job '%v' is missing or has an invalid MinBalance", job.Name)
 			}
 		case "Order":
-			if strategy, ok := job.Params["Strategy"].(string); !ok || strategy == "" {
+			if strategy, ok := job.Params["strategy"].(string); !ok || strategy == "" {
 				return fmt.Errorf("Order job '%v' is missing or has an invalid Strategy", job.Name)
 			}
-			if weeks, ok := job.Params["WeeksInAdvance"].(int); !ok || weeks <= 0 {
+			if weeks, ok := job.Params["weeks"].(int); !ok || weeks <= 0 {
 				return fmt.Errorf("Order job '%v' is missing or has an invalid WeeksInAdvance", job.Name)
 			}
 		default:

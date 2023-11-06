@@ -1,4 +1,3 @@
-
 LoginCredentials:
   User: null
   Password: null
@@ -10,12 +9,15 @@ SessionCredentials:
 
 Daemon:
   Jobs:
-    - Name: "Check Account Balance"
-      Type: CheckBalance
-      Schedule: "* * * * * *"
-      Params:
+    - name: Check Account Balance
+      params:
         email: my@mail.de
-        minBalance: 5
-    - Name: "Order Food"
-      Type: Order
-      Schedule: "*/45 * * * * *"
+        minbalance: 5
+      schedule: "*/10 * * * * *"
+      type: CheckBalance
+    - name: Order Food
+      params:
+        strategy: SchooFav
+        weeks: 1
+      schedule: "*/20 * * * * *"
+      type: Order

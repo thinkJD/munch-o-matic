@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var daeomonCmd = &cobra.Command{
+var daemonCmd = &cobra.Command{
 	Use:   "daemon",
 	Short: "Run munch-o-matic in daemon mode",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -16,10 +16,13 @@ var daeomonCmd = &cobra.Command{
 			fmt.Println(err)
 		}
 
-		cliUtils.Run(cfg)
+		err = cliUtils.Run(cfg)
+		if err != nil {
+			fmt.Println(err)
+		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(daeomonCmd)
+	rootCmd.AddCommand(daemonCmd)
 }
