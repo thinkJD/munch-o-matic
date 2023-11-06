@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -10,7 +11,7 @@ var catererStats = &cobra.Command{
 	Short: "Some caterer related statistics",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Implement Me")
-		
+
 	},
 }
 
