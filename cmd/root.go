@@ -29,7 +29,8 @@ var rootCmd = &cobra.Command{
 		cli, err = client.NewClient(cfg)
 		if err != nil {
 			fmt.Println("Failed to init client:", err)
-			return
+			fmt.Println("Please check your munch-o-matic configuration")
+			log.Fatal(err)
 		}
 
 		// Update configuration
