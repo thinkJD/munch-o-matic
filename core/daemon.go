@@ -5,64 +5,77 @@ import (
 	"fmt"
 	"munch-o-matic/client"
 	. "munch-o-matic/client/types"
-	"time"
 
 	"github.com/robfig/cron/v3"
 )
 
-func Run(config Config) error {
-	c := cron.New(cron.WithSeconds())
-	statusChan := make(chan string)
+func New(Cfg DaemonConfiguration, Cli *client.RestClient) (*Daemon, error) {
+	retVal := Daemon{}
+	retVal.cli = Cli
+	retVal.chron = cron.New(cron.WithSeconds())
 
-	for _, job := range config.Daemon.Jobs {
-		switch job.Type {
-
-		case "CheckBalance":
-			email, ok1 := job.Params["email"].(string)
-			minBalance, ok2 := job.Params["minbalance"].(int)
-			if !ok1 || !ok2 {
-				return fmt.Errorf("invalid parameter types for CheckBalance")
-			}
-
-			_, err := c.AddFunc(job.Schedule, func() {
-				sendLowBalanceEmail(statusChan, minBalance, email)
-			})
-			if err != nil {
-				return fmt.Errorf("error adding job: %w", err)
-			}
-
-		case "Order":
-			strategy, ok1 := job.Params["strategy"].(string)
-			weeks, ok2 := job.Params["weeks"].(int)
-			if !ok1 || !ok2 {
-				return fmt.Errorf("invalid parameter types for Order")
-			}
-			_, err := c.AddFunc(job.Schedule, func() {
-				orderFood(statusChan, strategy, weeks, config)
-			})
-			if err != nil {
-				return fmt.Errorf("error adding job: %w", err)
-			}
-		default:
-			return fmt.Errorf("%v is not a valid type", job.Type)
-		}
-	}
-
-	go func() {
-		for msg := range statusChan {
-			fmt.Println(msg)
-		}
-	}()
-
-	c.Start()
-	fmt.Println("Next job execution: ", c.Entries()[0].Next)
-	// Let it run for 2 minutes to see a couple of executions
-	time.Sleep(2 * time.Minute)
-	c.Stop()
-
-	return nil
+	return &Daemon{}, nil
 }
 
+func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
+	switch Job.Type {
+	case "CheckBalance":
+		email, ok1 := Job.Params["email"].(string)
+		minBalance, ok2 := Job.Params["minbalance"].(int)
+		if !ok1 || !ok2 {
+			return fmt.Errorf("invalid parameter types for CheckBalance")
+		}
+
+		_, err := d.chron.AddFunc(Job.Schedule, func() {
+			sendLowBalanceEmail(StatusChan, minBalance, email)
+		})
+		if err != nil {
+			return fmt.Errorf("error adding job: %w", err)
+		}
+
+	case "Order":
+		strategy, ok1 := Job.Params["strategy"].(string)
+		weeks, ok2 := Job.Params["weeks"].(int)
+		if !ok1 || !ok2 {
+			return fmt.Errorf("invalid parameter types for Order")
+		}
+		_, err := d.chron.AddFunc(Job.Schedule, func() {
+			orderFood(StatusChan, strategy, weeks)
+		})
+		if err != nil {
+			return fmt.Errorf("error adding job: %w", err)
+		}
+	default:
+		return fmt.Errorf("%v is not a valid type", Job.Type)
+	}
+
+}
+
+/*
+func (d *Daemon) Run(config DaemonConfiguration) error {
+
+		statusChan := make(chan string)
+
+		for _, job := range config.Daemon.Jobs {
+
+
+		}
+
+		go func() {
+			for msg := range statusChan {
+				fmt.Println(msg)
+			}
+		}()
+
+		c.Start()
+		fmt.Println("Next job execution: ", c.Entries()[0].Next)
+		// Let it run for 2 minutes to see a couple of executions
+		time.Sleep(2 * time.Minute)
+		c.Stop()
+
+		return nil
+	}
+*/
 func orderFood(ch chan string, Strategy string, WeeksInAdvance int, ClientConfig Config) {
 	c, err := client.NewClient(ClientConfig)
 	if err != nil {

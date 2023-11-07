@@ -18,15 +18,3 @@ type SessionCredentials struct {
 	UserId     int
 	CustomerId int
 }
-
-// Daemon related
-type Job struct {
-	Type     string
-	Name     string
-	Schedule string
-	Params   map[string]interface{}
-}
-
-type Daemon struct {
-	Jobs []Job
-}
