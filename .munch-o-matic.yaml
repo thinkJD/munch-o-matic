@@ -1,23 +1,25 @@
-LoginCredentials:
-  User: null
-  Password: null
+Client:
+  LoginCredentials:
+    User: null
+    Password: null
 
-SessionCredentials:
-  SessionID: null
-  UserId: null
-  CustomerId: null
+  SessionCredentials:
+    SessionID: null
+    UserId: null
+    CustomerId: null
 
-Daemon:
-  Jobs:
-    - name: Check Account Balance
-      params:
-        email: my@mail.de
-        minbalance: 5
-      schedule: "*/10 * * * * *"
-      type: CheckBalance
-    - name: Order Food
-      params:
-        strategy: SchooFav
-        weeks: 1
-      schedule: "*/20 * * * * *"
-      type: Order
+Core:
+  Daemon:
+    Jobs:
+      - name: Check Account Balance
+        params:
+          email: my@mail.de
+          minbalance: 5
+        schedule: "*/10 * * * * *"
+        type: CheckBalance
+      - name: Order Food
+        params:
+          strategy: SchooFav
+          weeks: 1
+        schedule: "*/20 * * * * *"
+        type: Order

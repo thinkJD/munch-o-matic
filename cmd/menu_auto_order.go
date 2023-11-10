@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"munch-o-matic/client"
 	. "munch-o-matic/client/types"
-	. "munch-o-matic/client/utils"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -39,7 +39,7 @@ var autoOrderMenu = &cobra.Command{
 			log.Fatal("Please provide --day or --weeks")
 		}
 
-		dishes, err := ChooseDishesByStrategy(autoOrderStrategy, upcomingDishes)
+		dishes, err := client.ChooseDishesByStrategy(autoOrderStrategy, upcomingDishes)
 		if err != nil {
 			log.Fatal("Error picking menues")
 		}

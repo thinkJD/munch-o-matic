@@ -1,10 +1,11 @@
-package types
+package client
+
+import "errors"
 
 // Config Global configuration struct
 type Config struct {
 	LoginCredentials   LoginCredentials
 	SessionCredentials SessionCredentials
-	Daemon             Daemon
 }
 
 // Client related
@@ -19,14 +20,12 @@ type SessionCredentials struct {
 	CustomerId int
 }
 
-// Daemon related
-type Job struct {
-	Type     string
-	Name     string
-	Schedule string
-	Params   map[string]interface{}
-}
-
-type Daemon struct {
-	Jobs []Job
+func ValidateConfig(Cfg Config) error {
+	if len(Cfg.LoginCredentials.User) == 0 {
+		return errors.New("logincredentials.user is required")
+	}
+	if len(Cfg.LoginCredentials.Password) == 0 {
+		return errors.New("logincredentials.password is required")
+	}
+	return nil
 }
