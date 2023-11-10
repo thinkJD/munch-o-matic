@@ -17,14 +17,21 @@ import (
 
 type RestClient struct {
 	Client     *http.Client
+	Config     Config
 	SessionID  string
 	UserId     int
 	CustomerId int
 	CookieJar  *cookiejar.Jar
 }
 
-func NewClient(config Config) (*RestClient, error) {
+func NewClient(Config Config) (*RestClient, error) {
 	c := &RestClient{}
+
+	err := ValidateConfig(Config)
+	if err != nil {
+		return &RestClient{}, fmt.Errorf("Error validating config: %w", err)
+	}
+	c.Config = Config
 
 	jar, err := cookiejar.New(nil)
 	if err != nil {
@@ -36,19 +43,19 @@ func NewClient(config Config) (*RestClient, error) {
 	}
 	cookie := &http.Cookie{
 		Name:  "JSESSIONID",
-		Value: config.SessionCredentials.SessionID,
+		Value: c.Config.SessionCredentials.SessionID,
 		Path:  "/",
 	}
 	cookieUrl, err := url.Parse("https://rest.tastenext.de")
 	c.CookieJar.SetCookies(cookieUrl, []*http.Cookie{cookie})
 
 	// Check if the old SessionId works
-	c.SessionID = config.SessionCredentials.SessionID
+	c.SessionID = c.Config.SessionCredentials.SessionID
 	currentUserResponse, err := c.getCurrentUser()
 	// If not, login again and get a new one
 	if err != nil {
 		fmt.Println("update session token")
-		err := c.login(config)
+		err := c.login()
 		if err != nil {
 			return nil, fmt.Errorf("failed to log in")
 		}
@@ -104,12 +111,12 @@ func (c *RestClient) sendRequest(method, urlStr string, body io.Reader, result i
 	return nil
 }
 
-func (c *RestClient) login(config Config) error {
+func (c *RestClient) login() error {
 	// Prepare the multipart form data
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
-	writer.WriteField("username", config.LoginCredentials.User)
-	writer.WriteField("password", config.LoginCredentials.Password)
+	writer.WriteField("username", c.Config.LoginCredentials.User)
+	writer.WriteField("password", c.Config.LoginCredentials.Password)
 	writer.WriteField("remember-me", "true")
 	writer.Close()
 
