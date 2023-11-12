@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"math/rand"
 	"munch-o-matic/client"
 	"time"
 
@@ -22,6 +23,7 @@ func NewDaemon(Cfg Config, Cli *client.RestClient) (*Daemon, error) {
 	if err != nil {
 		return &retVal, err
 	}
+
 	retVal.cli = Cli
 	retVal.cfg = Cfg
 	retVal.chron = cron.New(cron.WithSeconds())
@@ -39,7 +41,7 @@ func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
 		}
 
 		_, err := d.chron.AddFunc(Job.Schedule, func() {
-			sendLowBalanceEmail(StatusChan, minBalance, email)
+			d.sendLowBalanceEmail(StatusChan, minBalance, email)
 		})
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
@@ -52,7 +54,7 @@ func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
 			return fmt.Errorf("invalid parameter types for Order")
 		}
 		_, err := d.chron.AddFunc(Job.Schedule, func() {
-			orderFood(StatusChan, strategy, weeks)
+			d.orderFood(StatusChan, strategy, weeks)
 		})
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
@@ -63,7 +65,7 @@ func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
 	return nil
 }
 
-func (d *Daemon) Run() error {
+func (d Daemon) Run() error {
 
 	statusChan := make(chan string)
 
@@ -86,39 +88,90 @@ func (d *Daemon) Run() error {
 	return nil
 }
 
-func orderFood(ch chan string, Strategy string, WeeksInAdvance int) {
-	/*
-		c, err := client.NewClient(ClientConfig)
+func (d Daemon) orderFood(ch chan string, Strategy string, WeeksInAdvance int) func() {
+	return func() {
+		menu, err := d.cli.GetMenuWeeks(WeeksInAdvance)
 		if err != nil {
 			ch <- fmt.Sprintf("auto-order error: %w", err)
 		}
 
-		menu, err := c.GetMenuWeeks(WeeksInAdvance)
-		if err != nil {
-			ch <- fmt.Sprintf("auto-order error: %w", err)
-		}
-
-		dishes, err := client.ChooseDishesByStrategy(Strategy, menu)
+		dishes, err := ChooseDishesByStrategy(Strategy, menu)
 		if err != nil {
 			ch <- fmt.Sprintf("auto-order error: %w", err)
 		}
 		fmt.Println(dishes)
+		/*
 			for _, dish := range dishes {
-				err := c.OrderDish(dish.OrderId, false)
+				err := Cli.OrderDish(dish.OrderId, false)
 				if err != nil {
 					ch <- fmt.Sprintf("Could not order")
 				}
 			}
-	*/
-	ch <- fmt.Sprintf("Food ordered with %v strategy, for %v weeks", Strategy, WeeksInAdvance)
+		*/
+		ch <- fmt.Sprintf("Food ordered with %v strategy, for %v weeks", Strategy, WeeksInAdvance)
+	}
 }
 
-func sendLowBalanceEmail(ch chan string, MinBalance int, Email string) {
-	// Simulating checking balance and sending email
-	balance := 50 // let's say
-	if balance < 100 {
-		ch <- fmt.Sprintf("Balance < %v; Email sent to %v", MinBalance, Email)
-	} else {
-		ch <- "Balance is okay."
+func (d Daemon) sendLowBalanceEmail(ch chan string, MinBalance int, Email string) func() {
+	return func() {
+		// Simulating checking balance and sending email
+		balance := 50 // let's say
+		if balance < 100 {
+			ch <- fmt.Sprintf("Balance < %v; Email sent to %v", MinBalance, Email)
+		} else {
+			ch <- "Balance is okay."
+		}
 	}
+}
+
+// Pick dishes automatically based on a few strategies
+func ChooseDishesByStrategy(Strategy string, UpcomingDishes map[string][]client.UpcomingDish) (map[int]client.UpcomingDish, error) {
+	retVal := map[int]client.UpcomingDish{}
+
+	// Helper function to decide if menu should be skipped
+	shouldSkipMenu := func(menu []client.UpcomingDish) bool {
+		for _, dish := range menu {
+			if dish.Booked || dish.Dummy {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Iterate over the dishes of the day
+	for _, menu := range UpcomingDishes {
+		if shouldSkipMenu(menu) {
+			continue
+		}
+		// Choose dish based on the strategy
+		switch Strategy {
+
+		case "SchoolFav":
+			var maxPos, maxVal int
+			for i, dish := range menu {
+				if dish.Orders > maxVal {
+					maxPos = i
+					maxVal = dish.Orders
+				}
+			}
+			retVal[menu[maxPos].OrderId] = menu[maxPos]
+
+		case "Random":
+			randomInt := rand.Intn(len(menu))
+			retVal[menu[randomInt].OrderId] = menu[randomInt]
+
+		case "PersonalFav":
+			/* TODO: Add personal order count in getMenuWeek or structure the code better.
+			var maxPos, maxVal int
+			for i, dish := range menu {
+				GetOrderCount()
+			}
+			*/
+			return map[int]client.UpcomingDish{}, fmt.Errorf("PersonalFav is not implemented, sorry")
+
+		default:
+			return map[int]client.UpcomingDish{}, fmt.Errorf("%v is not a valid strategy", Strategy)
+		}
+	}
+	return retVal, nil
 }

@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
-	. "munch-o-matic/client/types"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -29,13 +28,13 @@ func NewClient(Config Config) (*RestClient, error) {
 
 	err := ValidateConfig(Config)
 	if err != nil {
-		return &RestClient{}, fmt.Errorf("Error validating config: %w", err)
+		return &RestClient{}, fmt.Errorf("validating config: %w", err)
 	}
 	c.Config = Config
 
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		return nil, fmt.Errorf("error initializing cookie jar: %v", err)
+		return nil, fmt.Errorf("initializing cookie jar: %v", err)
 	}
 	c.CookieJar = jar
 	c.Client = &http.Client{
@@ -47,6 +46,9 @@ func NewClient(Config Config) (*RestClient, error) {
 		Path:  "/",
 	}
 	cookieUrl, err := url.Parse("https://rest.tastenext.de")
+	if err != nil {
+		return &RestClient{}, fmt.Errorf("perse cookie url: %w", err)
+	}
 	c.CookieJar.SetCookies(cookieUrl, []*http.Cookie{cookie})
 
 	// Check if the old SessionId works

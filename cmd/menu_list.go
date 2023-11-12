@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
-	. "munch-o-matic/client/types"
+	"munch-o-matic/client"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -18,7 +18,7 @@ var getMenu = &cobra.Command{
 			fmt.Println("--day and --weeks are mutually exclusive. --week is ignored")
 		}
 
-		var upcomingDishes = map[string][]UpcomingDish{}
+		var upcomingDishes = map[string][]client.UpcomingDish{}
 		var err error
 		if len(menuDay) != 0 {
 			parsedDate, err := time.Parse("02.01.06", menuDay)

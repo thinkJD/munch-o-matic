@@ -1,9 +1,21 @@
-package types
+package client
 
-type CurrentUserResponse struct {
-	User struct {
-		ID int `json:"id"`
-	} `json:"user"`
+import "time"
+
+// Client types
+type Dish struct {
+	ID          int    `json:"id"`
+	Description string `json:"description"`
+	Name        string `json:"name"`
+}
+
+type UpcomingDish struct {
+	Dummy   bool
+	Date    time.Time
+	OrderId int
+	Dish    Dish
+	Orders  int // We get the total order for each dish from the API ;-)
+	Booked  bool
 }
 
 type Bookings struct {
@@ -13,6 +25,18 @@ type Bookings struct {
 		ID   int  `json:"id"`
 		Dish Dish `json:"dish"`
 	} `json:"menuBlockLineEntry"`
+}
+
+type MenuDates struct {
+	Year         int
+	CalendarWeek int
+}
+
+// Response types
+type CurrentUserResponse struct {
+	User struct {
+		ID int `json:"id"`
+	} `json:"user"`
 }
 
 type UserResponse struct {
@@ -50,12 +74,6 @@ type UserResponse struct {
 			Bookings []Bookings `json:"bookings"`
 		} `json:"customer"`
 	} `json:"user"`
-}
-
-type Dish struct {
-	ID          int    `json:"id"`
-	Description string `json:"description"`
-	Name        string `json:"name"`
 }
 
 type MenuResponse struct {

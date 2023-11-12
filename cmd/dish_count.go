@@ -2,8 +2,7 @@ package cmd
 
 import (
 	"fmt"
-
-	. "munch-o-matic/client"
+	"munch-o-matic/core"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +16,7 @@ var countDish = &cobra.Command{
 			fmt.Println(err)
 		}
 
-		dishCount, dish, err := GetOrderCount(userResp.User.Customer.Bookings, dishId)
+		dishCount, dish, err := core.GetOrderCount(userResp.User.Customer.Bookings, dishId)
 		if err != nil {
 			fmt.Printf("Error calculating dish count: %v\n", err)
 		} else {
@@ -27,6 +26,6 @@ var countDish = &cobra.Command{
 }
 
 func init() {
-	countDish.Flags().IntVar(&dishId, "dish", 0, "DishId")
+	countDish.Flags().IntVarP(&dishId, "dish-id", "d", 0, "DishId")
 	dishCmd.AddCommand(countDish)
 }
