@@ -90,12 +90,12 @@ func (d Daemon) orderFood(ch chan string, Strategy string, WeeksInAdvance int) f
 	return func() {
 		menu, err := d.cli.GetMenuWeeks(WeeksInAdvance)
 		if err != nil {
-			ch <- fmt.Sprintf("auto-order error: %w", err)
+			ch <- fmt.Sprintf("trouble getting menu: %v", err.Error())
 		}
 
 		dishes, err := ChooseDishesByStrategy(Strategy, menu)
 		if err != nil {
-			ch <- fmt.Sprintf("auto-order error: %w", err)
+			ch <- fmt.Sprintf("Trouble choosing dish: %v", err.Error())
 		}
 		fmt.Println(dishes)
 		/*
