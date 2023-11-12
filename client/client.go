@@ -21,6 +21,7 @@ type RestClient struct {
 	UserId     int
 	CustomerId int
 	CookieJar  *cookiejar.Jar
+	Bookings   []Bookings
 }
 
 func NewClient(Config Config) (*RestClient, error) {
@@ -75,6 +76,7 @@ func NewClient(Config Config) (*RestClient, error) {
 		return &RestClient{}, fmt.Errorf("unable to load user")
 	}
 	c.CustomerId = userResponse.User.Customer.ID
+	c.Bookings = userResponse.User.Customer.Bookings
 
 	return c, nil
 }
@@ -165,7 +167,6 @@ func (c *RestClient) getCurrentUser() (CurrentUserResponse, error) {
 	return currentUserResp, nil
 }
 
-// Public
 func (c *RestClient) GetUser() (UserResponse, error) {
 	var userResp UserResponse
 
@@ -178,8 +179,8 @@ func (c *RestClient) GetUser() (UserResponse, error) {
 }
 
 // We can only get one whole week from the API
-func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish, error) {
-	var upcomingDishes = map[string][]UpcomingDish{}
+func (c *RestClient) GetMenuWeek(Year int, Week int) (UpcomingDishMap, error) {
+	var retVal = UpcomingDishMap{}
 
 	customer := c.CustomerId
 
@@ -213,25 +214,28 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (map[string][]UpcomingDish,
 					isBooked = true
 				}
 			}
+
+			personalOrderCount, _ := c.GetOrderCount(dish.Dish.ID)
 			// Append upcoming dishes
 			upcomingDish := UpcomingDish{
-				OrderId: dish.ID,
-				Dish:    dish.Dish,
-				Orders:  dish.NumberOfBookings,
-				Date:    edate,
-				Dummy:   isDummy,
-				Booked:  isBooked,
+				OrderId:        dish.ID,
+				Dish:           dish.Dish,
+				Orders:         dish.NumberOfBookings,
+				PersonalOrders: personalOrderCount,
+				Date:           edate,
+				Dummy:          isDummy,
+				Booked:         isBooked,
 			}
 			dateKey := edate.Format("06-01-02")
-			upcomingDishes[dateKey] = append(upcomingDishes[dateKey], upcomingDish)
+			retVal[dateKey] = append(retVal[dateKey], upcomingDish)
 		}
 	}
-	return upcomingDishes, nil
+	return retVal, nil
 }
 
 // Get menu for the next n calender weeks
-func (c *RestClient) GetMenuWeeks(weeks int) (map[string][]UpcomingDish, error) {
-	var upcomingDishes = map[string][]UpcomingDish{}
+func (c *RestClient) GetMenuWeeks(weeks int) (UpcomingDishMap, error) {
+	var retVal = UpcomingDishMap{}
 
 	nextWeeks := GetNextCalenderWeeks(weeks)
 
@@ -240,21 +244,15 @@ func (c *RestClient) GetMenuWeeks(weeks int) (map[string][]UpcomingDish, error) 
 		if err != nil {
 			fmt.Errorf("Error getting weeks")
 		}
-
-		// Merge maps
-		for k, v := range menuWeek {
-			if _, ok := upcomingDishes[k]; !ok {
-				upcomingDishes[k] = v
-			}
-		}
+		retVal.Merge(menuWeek)
 	}
 
-	return upcomingDishes, nil
+	return retVal, nil
 }
 
 // Get Menu for one Day
-func (c *RestClient) GetMenuDay(Day time.Time) (map[string][]UpcomingDish, error) {
-	var retVal = map[string][]UpcomingDish{}
+func (c *RestClient) GetMenuDay(Day time.Time) (UpcomingDishMap, error) {
+	var retVal = UpcomingDishMap{}
 
 	menuWeek, err := c.GetMenuWeek(Day.ISOWeek())
 	if err != nil {
@@ -309,4 +307,19 @@ func (c *RestClient) OrderDish(DishOrderId int, CancelOrder bool) error {
 	}
 
 	return nil
+}
+
+// How often a dish was ordered in the past
+func (c RestClient) GetOrderCount(DishId int) (count int, dish Dish) {
+	count = 0
+	dish = Dish{}
+
+	for _, booking := range c.Bookings {
+		if DishId == booking.MenuBlockLineEntry.Dish.ID {
+			count++
+			dish = booking.MenuBlockLineEntry.Dish
+		}
+	}
+
+	return count, dish
 }

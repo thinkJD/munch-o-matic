@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"munch-o-matic/core"
 
 	"github.com/spf13/cobra"
 )
@@ -11,16 +10,11 @@ var countDish = &cobra.Command{
 	Use:   "count",
 	Short: "How often a DishId was booked",
 	Run: func(cmd *cobra.Command, args []string) {
-		userResp, err := cli.GetUser()
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		dishCount, dish, err := core.GetOrderCount(userResp.User.Customer.Bookings, dishId)
-		if err != nil {
-			fmt.Printf("Error calculating dish count: %v\n", err)
+		dishCount, dish := cli.GetOrderCount(dishId)
+		if dishCount > 0 {
+			fmt.Println("Dish was ordered 0 times.")
 		} else {
-			fmt.Printf("%v was ordered %v times.\n", dish.Name, dishCount)
+			fmt.Printf("Dish %v was ordered %v times.", dishCount, dish.Name)
 		}
 	},
 }

@@ -9,3 +9,4 @@ var menuWeeks int
 
 var menuDay string
 var autoOrderStrategy string
+var formatOutput string

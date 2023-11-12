@@ -10,12 +10,21 @@ type Dish struct {
 }
 
 type UpcomingDish struct {
-	Dummy   bool
-	Date    time.Time
-	OrderId int
-	Dish    Dish
-	Orders  int // We get the total order for each dish from the API ;-)
-	Booked  bool
+	Dummy          bool
+	Date           time.Time
+	OrderId        int
+	Dish           Dish
+	Orders         int // We get the total order for each dish from the API ;-)
+	PersonalOrders int // How often we ordered this dish in the past
+	Booked         bool
+}
+
+type UpcomingDishMap map[string][]UpcomingDish
+
+func (m UpcomingDishMap) Merge(other UpcomingDishMap) {
+	for key, value := range other {
+		m[key] = append(m[key], value...)
+	}
 }
 
 type Bookings struct {

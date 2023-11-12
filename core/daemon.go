@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"math/rand"
+
 	"munch-o-matic/client"
 	"time"
 
@@ -40,9 +40,7 @@ func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
 			return fmt.Errorf("invalid parameter types for CheckBalance")
 		}
 
-		_, err := d.chron.AddFunc(Job.Schedule, func() {
-			d.sendLowBalanceEmail(StatusChan, minBalance, email)
-		})
+		_, err := d.chron.AddFunc(Job.Schedule, d.sendLowBalanceEmail(StatusChan, minBalance, email))
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
 		}
@@ -53,9 +51,7 @@ func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
 		if !ok1 || !ok2 {
 			return fmt.Errorf("invalid parameter types for Order")
 		}
-		_, err := d.chron.AddFunc(Job.Schedule, func() {
-			d.orderFood(StatusChan, strategy, weeks)
-		})
+		_, err := d.chron.AddFunc(Job.Schedule, d.orderFood(StatusChan, strategy, weeks))
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
 		}
@@ -78,6 +74,8 @@ func (d Daemon) Run() error {
 			fmt.Println(msg)
 		}
 	}()
+
+	fmt.Println(d.chron.Entries())
 
 	d.chron.Start()
 	fmt.Println("Next job execution: ", d.chron.Entries()[0].Next)
@@ -122,56 +120,4 @@ func (d Daemon) sendLowBalanceEmail(ch chan string, MinBalance int, Email string
 			ch <- "Balance is okay."
 		}
 	}
-}
-
-// Pick dishes automatically based on a few strategies
-func ChooseDishesByStrategy(Strategy string, UpcomingDishes map[string][]client.UpcomingDish) (map[int]client.UpcomingDish, error) {
-	retVal := map[int]client.UpcomingDish{}
-
-	// Helper function to decide if menu should be skipped
-	shouldSkipMenu := func(menu []client.UpcomingDish) bool {
-		for _, dish := range menu {
-			if dish.Booked || dish.Dummy {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Iterate over the dishes of the day
-	for _, menu := range UpcomingDishes {
-		if shouldSkipMenu(menu) {
-			continue
-		}
-		// Choose dish based on the strategy
-		switch Strategy {
-
-		case "SchoolFav":
-			var maxPos, maxVal int
-			for i, dish := range menu {
-				if dish.Orders > maxVal {
-					maxPos = i
-					maxVal = dish.Orders
-				}
-			}
-			retVal[menu[maxPos].OrderId] = menu[maxPos]
-
-		case "Random":
-			randomInt := rand.Intn(len(menu))
-			retVal[menu[randomInt].OrderId] = menu[randomInt]
-
-		case "PersonalFav":
-			/* TODO: Add personal order count in getMenuWeek or structure the code better.
-			var maxPos, maxVal int
-			for i, dish := range menu {
-				GetOrderCount()
-			}
-			*/
-			return map[int]client.UpcomingDish{}, fmt.Errorf("PersonalFav is not implemented, sorry")
-
-		default:
-			return map[int]client.UpcomingDish{}, fmt.Errorf("%v is not a valid strategy", Strategy)
-		}
-	}
-	return retVal, nil
 }

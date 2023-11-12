@@ -18,19 +18,19 @@ var getMenu = &cobra.Command{
 			fmt.Println("--day and --weeks are mutually exclusive. --week is ignored")
 		}
 
-		var upcomingDishes = map[string][]client.UpcomingDish{}
+		var dishMap = client.UpcomingDishMap{}
 		var err error
 		if len(menuDay) != 0 {
 			parsedDate, err := time.Parse("02.01.06", menuDay)
 			if err != nil {
 				log.Fatalf("Invalid date format. Please provide the date in the format 02.01.06")
 			}
-			upcomingDishes, err = cli.GetMenuDay(parsedDate)
+			dishMap, err = cli.GetMenuDay(parsedDate)
 			if err != nil {
 				log.Fatal("Error getting dishes: %w", err)
 			}
 		} else if menuWeeks != 0 {
-			upcomingDishes, err = cli.GetMenuWeeks(menuWeeks)
+			dishMap, err = cli.GetMenuWeeks(menuWeeks)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -38,7 +38,7 @@ var getMenu = &cobra.Command{
 			log.Fatal("Please provide --day or --weeks")
 		}
 
-		renderUpcomingDishesTable(upcomingDishes)
+		renderOutput(dishMap)
 	},
 }
 
