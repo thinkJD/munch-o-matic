@@ -204,10 +204,11 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (UpcomingDishMap, error) {
 			if err != nil {
 				log.Fatal("Error getting emission date")
 			}
+
 			// Check for dummy values. They appear if there is no menu for that day.
 			isDummy := dish.Dish.Name == "---"
+
 			// Flag already booked dishes
-			// TODO: This can be done with the UserResponse too
 			isBooked := false
 			for _, booking := range menuResp.Bookings {
 				if booking.MenuBlockLineEntry.ID == dish.ID {
@@ -215,8 +216,8 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (UpcomingDishMap, error) {
 				}
 			}
 
-			personalOrderCount, _ := c.GetOrderCount(dish.Dish.ID)
 			// Append upcoming dishes
+			personalOrderCount, _ := c.GetOrderCount(dish.Dish.ID)
 			upcomingDish := UpcomingDish{
 				OrderId:        dish.ID,
 				Dish:           dish.Dish,

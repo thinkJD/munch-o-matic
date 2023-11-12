@@ -4,7 +4,22 @@ import (
 	"fmt"
 	"math/rand"
 	"munch-o-matic/client"
+	"time"
 )
+
+// AutoOrder automatically places an order for upcoming dishes starting from the specified start date.
+// It returns a map of upcoming dishes and an error, if any.
+//
+// Parameters:
+// - StartDate: The start date from which to place the order.
+// - Days: The number of days for which to place the order.
+//
+// Returns:
+// - client.UpcomingDishMap: A map of upcoming dishes.
+// - error: An error, if any.
+func AutoOrderWeeks(Cli client.RestClient, StartDate time.Time, Days int) (client.UpcomingDishMap, error) {
+	return client.UpcomingDishMap{}, fmt.Errorf("implement me")
+}
 
 // Pick dishes automatically based on a few strategies
 func ChooseDishesByStrategy(Strategy string, DishMap client.UpcomingDishMap) (map[int]client.UpcomingDish, error) {
