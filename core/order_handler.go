@@ -7,22 +7,59 @@ import (
 	"time"
 )
 
-// AutoOrder automatically places an order for upcoming dishes starting from the specified start date.
-// It returns a map of upcoming dishes and an error, if any.
+type OrderedDishes map[int]client.UpcomingDish
+
+// AutoOrderWeek places orders for dishes for a specified week and year, based on a chosen strategy.
+// It supports a dry-run mode for simulation. It returns a map of ordered dishes and an error, if any.
 //
 // Parameters:
-// - StartDate: The start date from which to place the order.
-// - Days: The number of days for which to place the order.
+// - Cli: Client interface to interact with the ordering system.
+// - Week: The week number for which the order is being placed.
+// - Year: The year for which the order is being placed. Defaults to the current year if set to 0.
+// - Strategy: Strategy for selecting dishes (e.g., "Random", "SchoolFav").
+// - DryRun: If true, simulates the ordering process without actual orders being placed.
 //
 // Returns:
-// - client.UpcomingDishMap: A map of upcoming dishes.
-// - error: An error, if any.
-func AutoOrderWeeks(Cli client.RestClient, StartDate time.Time, Days int) (client.UpcomingDishMap, error) {
-	return client.UpcomingDishMap{}, fmt.Errorf("implement me")
+// - OrderedDishes: A map of ordered dishes with their IDs.
+// - error: An error, if any occurred during the ordering process.
+func AutoOrderWeek(Cli client.RestClient, Week int, Year int, Strategy string, DryRun bool) (OrderedDishes, error) {
+	if Year == 0 {
+		// Defaults to current year
+		Year = time.Now().Year()
+	}
+
+	menu, err := Cli.GetMenuWeek(Year, Week)
+	if err != nil {
+		return OrderedDishes{}, fmt.Errorf("error: %w", err)
+	}
+
+	dishes, err := ChooseDishesByStrategy(Strategy, menu)
+	if err != nil {
+		return OrderedDishes{}, fmt.Errorf("error picking dishes: %w", err)
+	}
+
+	for _, dish := range dishes {
+		if !DryRun {
+			err := Cli.OrderDish(dish.OrderId, false)
+			if err != nil {
+				return OrderedDishes{}, fmt.Errorf("error ordering dish: %w", err)
+			}
+		}
+	}
+	return dishes, fmt.Errorf("implement me")
 }
 
-// Pick dishes automatically based on a few strategies
-func ChooseDishesByStrategy(Strategy string, DishMap client.UpcomingDishMap) (map[int]client.UpcomingDish, error) {
+// ChooseDishesByStrategy selects dishes based on a specified strategy from a given map of upcoming dishes.
+// Currently supported strategies include "SchoolFav" and "Random". "PersonalFav" is planned but not yet implemented.
+//
+// Parameters:
+// - Strategy: The strategy to use for selecting dishes.
+// - DishMap: A map of upcoming dishes to choose from.
+//
+// Returns:
+// - OrderedDishes: A map of selected dishes based on the strategy.
+// - error: An error if the strategy is invalid or not implemented.
+func ChooseDishesByStrategy(Strategy string, DishMap client.UpcomingDishMap) (OrderedDishes, error) {
 	retVal := map[int]client.UpcomingDish{}
 
 	// Helper function to decide if menu should be skipped
