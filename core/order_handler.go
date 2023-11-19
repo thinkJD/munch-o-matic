@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"munch-o-matic/client"
 	"time"
@@ -49,6 +50,51 @@ func AutoOrderWeek(Cli client.RestClient, Week int, Year int, Strategy string, D
 	return dishes, fmt.Errorf("implement me")
 }
 
+func AutoOrderDay(Cli client.RestClient, Day time.Time, Strategy string, DryRun bool) (OrderedDishes, error) {
+	upcomingDishes, err := Cli.GetMenuDay(Day)
+	if err != nil {
+		log.Fatal("get dishes: %w", err)
+	}
+
+	dishes, err := ChooseDishesByStrategy(Strategy, upcomingDishes)
+	if err != nil {
+		return OrderedDishes{}, fmt.Errorf("picking dish: %w", err)
+	}
+
+	orderedDishes, err := order(Cli, dishes, DryRun)
+	if err != nil {
+		return OrderedDishes{}, fmt.Errorf("order dish: %w", err)
+	}
+
+	return orderedDishes, nil
+}
+
+// order places orders for dishes.
+//
+// Parameters:
+// - Cli: Client interface to interact with the ordering system.
+// - Dishes: A map of ordered dishes with their IDs.
+// - DryRun: If true, simulates the ordering process without actual orders being placed.
+//
+// Returns:
+// - OrderedDishes: A map of ordered dishes with their IDs.
+// - error: An error, if any occurred during the ordering process.
+func order(Cli client.RestClient, Dishes OrderedDishes, DryRun bool) (OrderedDishes, error) {
+	// TODO: Check balance
+	retVal := OrderedDishes{}
+	for _, dish := range Dishes {
+		if !DryRun {
+			err := Cli.OrderDish(dish.OrderId, false)
+			if err != nil {
+				return retVal, fmt.Errorf("order dish %s failed with: %w", dish.OrderId, err)
+			}
+			retVal[dish.OrderId] = dish
+		}
+		fmt.Printf("%v:\t%v\n", dish.OrderId, dish.Dish.Name)
+	}
+	return retVal, nil
+}
+
 // ChooseDishesByStrategy selects dishes based on a specified strategy from a given map of upcoming dishes.
 // Currently supported strategies include "SchoolFav" and "Random". "PersonalFav" is planned but not yet implemented.
 //
@@ -60,7 +106,7 @@ func AutoOrderWeek(Cli client.RestClient, Week int, Year int, Strategy string, D
 // - OrderedDishes: A map of selected dishes based on the strategy.
 // - error: An error if the strategy is invalid or not implemented.
 func ChooseDishesByStrategy(Strategy string, DishMap client.UpcomingDishMap) (OrderedDishes, error) {
-	retVal := map[int]client.UpcomingDish{}
+	retVal := OrderedDishes{}
 
 	// Helper function to decide if menu should be skipped
 	shouldSkipMenu := func(menu []client.UpcomingDish) bool {
@@ -101,10 +147,10 @@ func ChooseDishesByStrategy(Strategy string, DishMap client.UpcomingDishMap) (Or
 				GetOrderCount()
 			}
 			*/
-			return map[int]client.UpcomingDish{}, fmt.Errorf("PersonalFav is not implemented, sorry")
+			return OrderedDishes{}, fmt.Errorf("PersonalFav is not implemented, sorry")
 
 		default:
-			return map[int]client.UpcomingDish{}, fmt.Errorf("%v is not a valid strategy", Strategy)
+			return OrderedDishes{}, fmt.Errorf("%v is not a valid strategy", Strategy)
 		}
 	}
 	return retVal, nil
