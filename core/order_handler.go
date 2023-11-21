@@ -10,6 +10,22 @@ import (
 
 type OrderedDishes map[int]client.UpcomingDish
 
+func order(Cli client.RestClient, Dishes OrderedDishes, DryRun bool) (OrderedDishes, error) {
+	// TODO: Check balance
+	retVal := OrderedDishes{}
+	for _, dish := range Dishes {
+		if !DryRun {
+			err := Cli.OrderDish(dish.OrderId, false)
+			if err != nil {
+				return retVal, fmt.Errorf("order dish %s failed with: %w", dish.OrderId, err)
+			}
+			retVal[dish.OrderId] = dish
+		}
+		fmt.Printf("%v:\t%v\n", dish.OrderId, dish.Dish.Name)
+	}
+	return retVal, nil
+}
+
 // AutoOrderWeek places orders for dishes for a specified week and year, based on a chosen strategy.
 // It supports a dry-run mode for simulation. It returns a map of ordered dishes and an error, if any.
 //
@@ -23,7 +39,7 @@ type OrderedDishes map[int]client.UpcomingDish
 // Returns:
 // - OrderedDishes: A map of ordered dishes with their IDs.
 // - error: An error, if any occurred during the ordering process.
-func AutoOrderWeek(Cli client.RestClient, Week int, Year int, Strategy string, DryRun bool) (OrderedDishes, error) {
+func AutoOrderWeek(Cli *client.RestClient, Week int, Year int, Strategy string, DryRun bool) (OrderedDishes, error) {
 	if Year == 0 {
 		// Defaults to current year
 		Year = time.Now().Year()
@@ -39,18 +55,27 @@ func AutoOrderWeek(Cli client.RestClient, Week int, Year int, Strategy string, D
 		return OrderedDishes{}, fmt.Errorf("error picking dishes: %w", err)
 	}
 
-	for _, dish := range dishes {
-		if !DryRun {
-			err := Cli.OrderDish(dish.OrderId, false)
-			if err != nil {
-				return OrderedDishes{}, fmt.Errorf("error ordering dish: %w", err)
-			}
-		}
+	orderedDishes, err := order(Cli, dishes, DryRun)
+	if err != nil {
+		return OrderedDishes{}, fmt.Errorf("order dish: %w", err)
 	}
-	return dishes, fmt.Errorf("implement me")
+
+	return orderedDishes, nil
 }
 
-func AutoOrderDay(Cli client.RestClient, Day time.Time, Strategy string, DryRun bool) (OrderedDishes, error) {
+// AutoOrderDay places orders for one dish for a specified day, based on a chosen strategy.
+// It supports a dry-run mode for simulation. It returns a map of ordered dishes and an error, if any.
+//
+// Parameters:
+// - Cli: Client interface to interact with the ordering system.
+// - Day: The day for which the order is being placed.
+// - Strategy: Strategy for selecting dishes (e.g., "SchoolFav", "Random").
+// - DryRun: If true, simulates the ordering process without actual orders being placed.
+//
+// Returns:
+// - OrderedDishes: A map of ordered dishes with their IDs.
+// - error: An error, if any occurred during the ordering process.
+func AutoOrderDay(Cli *client.RestClient, Day time.Time, Strategy string, DryRun bool) (OrderedDishes, error) {
 	upcomingDishes, err := Cli.GetMenuDay(Day)
 	if err != nil {
 		log.Fatal("get dishes: %w", err)
@@ -67,32 +92,6 @@ func AutoOrderDay(Cli client.RestClient, Day time.Time, Strategy string, DryRun 
 	}
 
 	return orderedDishes, nil
-}
-
-// order places orders for dishes.
-//
-// Parameters:
-// - Cli: Client interface to interact with the ordering system.
-// - Dishes: A map of ordered dishes with their IDs.
-// - DryRun: If true, simulates the ordering process without actual orders being placed.
-//
-// Returns:
-// - OrderedDishes: A map of ordered dishes with their IDs.
-// - error: An error, if any occurred during the ordering process.
-func order(Cli client.RestClient, Dishes OrderedDishes, DryRun bool) (OrderedDishes, error) {
-	// TODO: Check balance
-	retVal := OrderedDishes{}
-	for _, dish := range Dishes {
-		if !DryRun {
-			err := Cli.OrderDish(dish.OrderId, false)
-			if err != nil {
-				return retVal, fmt.Errorf("order dish %s failed with: %w", dish.OrderId, err)
-			}
-			retVal[dish.OrderId] = dish
-		}
-		fmt.Printf("%v:\t%v\n", dish.OrderId, dish.Dish.Name)
-	}
-	return retVal, nil
 }
 
 // ChooseDishesByStrategy selects dishes based on a specified strategy from a given map of upcoming dishes.
