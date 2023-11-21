@@ -1,4 +1,4 @@
-name: bmunch-o-matic build
+name: munch-o-matic build
 
 on:
   push:
