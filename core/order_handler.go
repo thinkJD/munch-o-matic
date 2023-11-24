@@ -10,14 +10,14 @@ import (
 
 type OrderedDishes map[int]client.UpcomingDish
 
-func order(Cli *client.RestClient, Dishes OrderedDishes, DryRun bool) (OrderedDishes, error) {
+func orderDishes(Cli *client.RestClient, Dishes OrderedDishes, DryRun bool) (OrderedDishes, error) {
 	// TODO: Check balance
 	retVal := OrderedDishes{}
 	for _, dish := range Dishes {
 		if !DryRun {
 			err := Cli.OrderDish(dish.OrderId, false)
 			if err != nil {
-				return retVal, fmt.Errorf("order dish %s failed with: %w", dish.OrderId, err)
+				return retVal, fmt.Errorf("order dish %d failed with: %w", dish.OrderId, err)
 			}
 			retVal[dish.OrderId] = dish
 		}
@@ -55,7 +55,7 @@ func AutoOrderWeek(Cli *client.RestClient, Week int, Year int, Strategy string, 
 		return OrderedDishes{}, fmt.Errorf("error picking dishes: %w", err)
 	}
 
-	orderedDishes, err := order(Cli, dishes, DryRun)
+	orderedDishes, err := orderDishes(Cli, dishes, DryRun)
 	if err != nil {
 		return OrderedDishes{}, fmt.Errorf("order dish: %w", err)
 	}
@@ -86,7 +86,7 @@ func AutoOrderDay(Cli *client.RestClient, Day time.Time, Strategy string, DryRun
 		return OrderedDishes{}, fmt.Errorf("picking dish: %w", err)
 	}
 
-	orderedDishes, err := order(Cli, dishes, DryRun)
+	orderedDishes, err := orderDishes(Cli, dishes, DryRun)
 	if err != nil {
 		return OrderedDishes{}, fmt.Errorf("order dish: %w", err)
 	}
