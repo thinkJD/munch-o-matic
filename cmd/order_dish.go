@@ -29,5 +29,5 @@ func init() {
 	orderDish.Flags().IntVarP(&orderId, "order-id", "o", 0, "OrderId of the dish")
 	orderDish.Flags().BoolVarP(&cancel, "cancel", "c", false, "cancel order")
 
-	dishCmd.AddCommand(orderDish)
+	rootCmd.AddCommand(orderDish)
 }

@@ -12,7 +12,10 @@ import (
 
 var autoOrderMenu = &cobra.Command{
 	Use:   "auto-order",
-	Short: "Order dishes automatically",
+	Short: "Order dishes automatically based on the provided strategy.",
+	Long: `Availiable strategies:
+		   Random: Picks a random dish from the menu.
+		   SchoolFav: Picks the dish with the highest order count.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(menuDay) > 0 && menuWeeks != 0 {
 			menuWeeks = 0
@@ -47,10 +50,10 @@ var autoOrderMenu = &cobra.Command{
 // Add any command-specific flags or arguments here
 
 func init() {
-	autoOrderMenu.Flags().IntVarP(&menuWeeks, "weeks", "w", 0, "Get Menu for n weeks")
-	autoOrderMenu.Flags().StringVarP(&menuDay, "day", "d", "", "Get Menu for this day. Format: 01-02-23")
+	autoOrderMenu.Flags().IntVarP(&menuWeeks, "weeks", "w", 0, "Order dishes for the next n weeks")
+	autoOrderMenu.Flags().StringVarP(&menuDay, "day", "d", "", "Order dish for a specific day. Format: 01-02-23")
 
-	autoOrderMenu.Flags().StringVarP(&autoOrderStrategy, "strategy", "s", "Random", "Strategy used to pick dish")
+	autoOrderMenu.Flags().StringVarP(&autoOrderStrategy, "strategy", "s", "SchoolFav", "Strategy used to pick a dish")
 	autoOrderMenu.Flags().BoolVar(&dryRun, "dry-run", false, "Do not order but print out dish picks")
 	menuCmd.AddCommand(autoOrderMenu)
 }

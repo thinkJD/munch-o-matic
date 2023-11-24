@@ -11,7 +11,8 @@ import (
 
 var getMenu = &cobra.Command{
 	Use:   "list",
-	Short: "list all menus",
+	Short: "List menus per day or week",
+	Long:  "Each day has a menu of three dishes.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(menuDay) > 0 && menuWeeks != 0 {
 			menuWeeks = 0
@@ -43,7 +44,7 @@ var getMenu = &cobra.Command{
 }
 
 func init() {
-	getMenu.Flags().IntVarP(&menuWeeks, "weeks", "w", 0, "Get Menu for n weeks")
+	getMenu.Flags().IntVarP(&menuWeeks, "weeks", "w", 0, "Get Menu for the next n weeks")
 	getMenu.Flags().StringVarP(&menuDay, "day", "d", "", "Get Menu for this day. Format: 01-02-23")
 
 	menuCmd.AddCommand(getMenu)

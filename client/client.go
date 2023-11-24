@@ -57,7 +57,6 @@ func NewClient(Config Config) (*RestClient, error) {
 	currentUserResponse, err := c.getCurrentUser()
 	// If not, login again and get a new one
 	if err != nil {
-		fmt.Println("update session token")
 		err := c.login()
 		if err != nil {
 			return nil, fmt.Errorf("failed to log in")
