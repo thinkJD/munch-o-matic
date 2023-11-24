@@ -300,14 +300,19 @@ func (c *RestClient) OrderDish(DishOrderId int, CancelOrder bool) error {
 		return errors.New("failed sending order request")
 	}
 
-	if menuResp.Message == "app.messages.changed-booking-status.insufficient-money" {
+	switch menuResp.Message {
+	case "app.messages.changed-booking-status.too-late":
+		return fmt.Errorf("to late to place order")
+
+	case "app.messages.changed-booking-status.insufficient-money":
 		return fmt.Errorf("not enough account balance to place order")
-	}
-	if menuResp.Status != "OK" {
+
+	case "Ok":
+		return nil
+
+	default:
 		return fmt.Errorf("failed to place / remove order: %v", menuResp.Message)
 	}
-
-	return nil
 }
 
 // How often a dish was ordered in the past

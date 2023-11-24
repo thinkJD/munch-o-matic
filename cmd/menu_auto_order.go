@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"munch-o-matic/client"
 	"munch-o-matic/core"
 	"time"
 
@@ -30,9 +31,11 @@ var autoOrderMenu = &cobra.Command{
 				log.Fatal("can't order: %w", err)
 			}
 		} else if menuWeeks != 0 {
-			orderedDishes, err = core.AutoOrderWeek(cli, menuWeeks, 0, autoOrderStrategy, dryRun)
-			if err != nil {
-				log.Fatal("can't order: %w", err)
+			for _, menuWeek := range client.GetNextCalenderWeeks(menuWeeks) {
+				orderedDishes, err = core.AutoOrderWeek(cli, menuWeek.CalendarWeek, menuWeek.Year, autoOrderStrategy, dryRun)
+				if err != nil {
+					log.Fatal("can't order: %w", err)
+				}
 			}
 		} else {
 			log.Fatal("Please provide --day or --weeks")

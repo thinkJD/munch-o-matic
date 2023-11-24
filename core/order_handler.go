@@ -11,17 +11,16 @@ import (
 type OrderedDishes map[int]client.UpcomingDish
 
 func orderDishes(Cli *client.RestClient, Dishes OrderedDishes, DryRun bool) (OrderedDishes, error) {
-	// TODO: Check balance
 	retVal := OrderedDishes{}
 	for _, dish := range Dishes {
 		if !DryRun {
 			err := Cli.OrderDish(dish.OrderId, false)
 			if err != nil {
+				// Return the already ordered dishes
 				return retVal, fmt.Errorf("order dish %d failed with: %w", dish.OrderId, err)
 			}
 			retVal[dish.OrderId] = dish
 		}
-		fmt.Printf("%v:\t%v\n", dish.OrderId, dish.Dish.Name)
 	}
 	return retVal, nil
 }
@@ -43,6 +42,10 @@ func AutoOrderWeek(Cli *client.RestClient, Week int, Year int, Strategy string, 
 	if Year == 0 {
 		// Defaults to current year
 		Year = time.Now().Year()
+	}
+	if Week == 0 {
+		// Defaults to current week
+		Year, Week = time.Now().ISOWeek()
 	}
 
 	menu, err := Cli.GetMenuWeek(Year, Week)
