@@ -10,7 +10,7 @@ import (
 
 type OrderedDishes map[int]client.UpcomingDish
 
-func order(Cli client.RestClient, Dishes OrderedDishes, DryRun bool) (OrderedDishes, error) {
+func order(Cli *client.RestClient, Dishes OrderedDishes, DryRun bool) (OrderedDishes, error) {
 	// TODO: Check balance
 	retVal := OrderedDishes{}
 	for _, dish := range Dishes {
