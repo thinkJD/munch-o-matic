@@ -28,13 +28,13 @@ var autoOrderMenu = &cobra.Command{
 			}
 			orderedDishes, err = core.AutoOrderDay(cli, parsedDate, autoOrderStrategy, dryRun)
 			if err != nil {
-				log.Fatal("can't order: %w", err)
+				log.Fatal("order failed: %w", err)
 			}
 		} else if menuWeeks != 0 {
 			for _, menuWeek := range client.GetNextCalenderWeeks(menuWeeks) {
 				orderedDishes, err = core.AutoOrderWeek(cli, menuWeek.CalendarWeek, menuWeek.Year, autoOrderStrategy, dryRun)
 				if err != nil {
-					log.Fatal("can't order: %w", err)
+					log.Fatal("order failed: ", err)
 				}
 			}
 		} else {
