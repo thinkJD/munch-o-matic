@@ -6,9 +6,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var countDish = &cobra.Command{
+var infoDishCount = &cobra.Command{
 	Use:   "count",
-	Short: "How often a DishId was booked",
+	Short: "Counts how often a dish was booked in the past.",
 	Run: func(cmd *cobra.Command, args []string) {
 		dishCount, dish := cli.GetOrderCount(dishId)
 		if dishCount > 0 {
@@ -20,6 +20,6 @@ var countDish = &cobra.Command{
 }
 
 func init() {
-	countDish.Flags().IntVarP(&dishId, "dish-id", "d", 0, "DishId")
-	dishCmd.AddCommand(countDish)
+	infoDishCount.Flags().IntVarP(&dishId, "dish-id", "d", 0, "ID of the dish to count")
+	infoCmd.AddCommand(infoDishCount)
 }

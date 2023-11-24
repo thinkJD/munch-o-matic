@@ -13,7 +13,7 @@ import (
 
 var menuCmd = &cobra.Command{
 	Use:   "menu",
-	Short: "Operations related to menus",
+	Short: "Work with menus",
 }
 
 func init() {

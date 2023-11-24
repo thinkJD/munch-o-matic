@@ -57,7 +57,6 @@ func NewClient(Config Config) (*RestClient, error) {
 	currentUserResponse, err := c.getCurrentUser()
 	// If not, login again and get a new one
 	if err != nil {
-		fmt.Println("update session token")
 		err := c.login()
 		if err != nil {
 			return nil, fmt.Errorf("failed to log in")
@@ -204,10 +203,11 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (UpcomingDishMap, error) {
 			if err != nil {
 				log.Fatal("Error getting emission date")
 			}
+
 			// Check for dummy values. They appear if there is no menu for that day.
 			isDummy := dish.Dish.Name == "---"
+
 			// Flag already booked dishes
-			// TODO: This can be done with the UserResponse too
 			isBooked := false
 			for _, booking := range menuResp.Bookings {
 				if booking.MenuBlockLineEntry.ID == dish.ID {
@@ -215,8 +215,8 @@ func (c *RestClient) GetMenuWeek(Year int, Week int) (UpcomingDishMap, error) {
 				}
 			}
 
-			personalOrderCount, _ := c.GetOrderCount(dish.Dish.ID)
 			// Append upcoming dishes
+			personalOrderCount, _ := c.GetOrderCount(dish.Dish.ID)
 			upcomingDish := UpcomingDish{
 				OrderId:        dish.ID,
 				Dish:           dish.Dish,
@@ -299,14 +299,19 @@ func (c *RestClient) OrderDish(DishOrderId int, CancelOrder bool) error {
 		return errors.New("failed sending order request")
 	}
 
-	if menuResp.Message == "app.messages.changed-booking-status.insufficient-money" {
+	switch menuResp.Message {
+	case "app.messages.changed-booking-status.too-late":
+		return fmt.Errorf("to late to place order")
+
+	case "app.messages.changed-booking-status.insufficient-money":
 		return fmt.Errorf("not enough account balance to place order")
-	}
-	if menuResp.Status != "OK" {
+
+	case "Ok":
+		return nil
+
+	default:
 		return fmt.Errorf("failed to place / remove order: %v", menuResp.Message)
 	}
-
-	return nil
 }
 
 // How often a dish was ordered in the past
