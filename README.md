@@ -11,7 +11,11 @@ Munch-o-matic can order dishes automatically based on multiple strategies. Use i
 ## Synopsis
 
 ```
-TasteNext API Client
+                                _                                             _    _
+ _ __ ___   _   _  _ __    ___ | |__           ___          _ __ ___    __ _ | |_ (_)  ___
+| '_ ` _ \ | | | || '_ \  / __|| '_ \  _____  / _ \  _____ | '_ ` _ \  / _` || __|| | / __|
+| | | | | || |_| || | | || (__ | | | ||_____|| (_) ||_____|| | | | | || (_| || |_ | || (__
+|_| |_| |_| \__,_||_| |_| \___||_| |_|        \___/        |_| |_| |_| \__,_| \__||_| \___|
 
 Usage:
   munch-o-matic [command]
