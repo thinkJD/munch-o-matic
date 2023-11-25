@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/thinkJD/munch-o-matic/compare/v1.0.0...v1.0.1) (2023-11-25)
+
+
+### Bug Fixes
+
+* Demo ([367befa](https://github.com/thinkJD/munch-o-matic/commit/367befa9d83904ba7fed01b42658106cb73e9fa8))
+
 ## 1.0.0 (2023-11-24)
 
 
