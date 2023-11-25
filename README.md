@@ -2,11 +2,11 @@
 
 My children receive their school meals from a local caterer. Every day, there are three dishes to choose from. The dishes are announced about four weeks in advance, and you can select what you would like to eat using a web UI. Sometimes, everyday life gets really busy, and it can be a close call with placing the order.
 
-Munch-o-matic can order dishes automatically based on multiple strategies. Use it from your terminal or run it in daemon mode on your server. You can change the orders whenever you like using the official web UI.
+munch-o-matic can order dishes automatically based on multiple strategies. Use it from your terminal or run it in daemon mode on your server. You can change the orders whenever you like using the official web UI.
 
 ## Demo
 
-![](https://github.com/thinkjd/munch-o-matic/assets/Your_GIF_Name.gif)
+![](https://github.com/thinkJD/munch-o-matic/blob/main/assets/render1700930307166.gif)
 
 ## Synopsis
 
