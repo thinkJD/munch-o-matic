@@ -15,7 +15,7 @@ var infoUserCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal("Could not load user object")
 		}
-
+		fmt.Println()
 		fmt.Printf("User ID:\t%v\n", userResponse.User.ID)
 		fmt.Printf("Customer ID: \t%v\n", cli.CustomerId)
 		fmt.Printf("Login Name:\t%v\n", userResponse.User.Username)

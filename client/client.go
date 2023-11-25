@@ -267,7 +267,7 @@ func (c *RestClient) GetMenuDay(Day time.Time) (UpcomingDishMap, error) {
 	return retVal, nil
 }
 
-// Order or cancel a dish
+// OrderDish places or cancels an order.
 func (c *RestClient) OrderDish(DishOrderId int, CancelOrder bool) error {
 	// Is the dish already ordered?
 	userResp, err := c.GetUser()
@@ -306,11 +306,11 @@ func (c *RestClient) OrderDish(DishOrderId int, CancelOrder bool) error {
 	case "app.messages.changed-booking-status.insufficient-money":
 		return fmt.Errorf("not enough account balance to place order")
 
-	case "Ok":
+	case "app.messages.changed-booking-status.successful":
 		return nil
 
 	default:
-		return fmt.Errorf("failed to place / remove order: %v", menuResp.Message)
+		return fmt.Errorf("failed to place or remove order: %v", menuResp.Message)
 	}
 }
 
