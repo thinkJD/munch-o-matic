@@ -4,6 +4,10 @@ My children receive their school meals from a local caterer. Every day, there ar
 
 Munch-o-matic can order dishes automatically based on multiple strategies. Use it from your terminal or run it in daemon mode on your server. You can change the orders whenever you like using the official web UI.
 
+## Demo
+
+![](https://github.com/thinkjd/munch-o-matic/assets/Your_GIF_Name.gif)
+
 ## Synopsis
 
 ```
