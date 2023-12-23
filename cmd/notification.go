@@ -10,7 +10,7 @@ var notification = &cobra.Command{
 	Use:   "send-notification",
 	Short: "Send notifications",
 	Run: func(cmd *cobra.Command, args []string) {
-		core.SendNotification()
+		core.SendAccountBalanceNotification(3000)
 	},
 }
 

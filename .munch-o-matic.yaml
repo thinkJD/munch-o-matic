@@ -13,13 +13,16 @@ Core:
     Jobs:
       - name: Check Account Balance
         params:
-          email: my@mail.de
+          topic: thinkjd_munch_o_matic
           minbalance: 5
+          template: |
+            Your account balance is low: {{.AccountBalance}}€
         schedule: "*/10 * * * * *"
         type: CheckBalance
       - name: Order Food
         params:
           strategy: SchooFav
-          weeks: 1
+          weeks: 2
+          notification_topic: thinkjd
         schedule: "*/20 * * * * *"
         type: Order

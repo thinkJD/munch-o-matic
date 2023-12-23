@@ -1,29 +1,43 @@
 package core
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 	"strings"
+	"text/template"
 )
 
-var NextWeeksMenu string = `
-# Bee Boop, ich habe essen bestellt
+func SendAccountBalanceNotification(AccountBalance int) error {
+	tplString := `Account balance low: {{.AccountBalance}}`
 
-## Bestellung
+	tmpl, err := template.New("accountBalance").Parse(tplString)
+	if err != nil {
+		return fmt.Errorf("create template: %w", err)
+	}
 
-### 12.12.23
-* Bestellt  
-  * Käsespätzle: *Nudelgericht mit Käse*
-* Alternativen:
-  * Wurst: *Fleischerzeugnis aus Schwein*
-  * Salatteller: *Mit Gemüse*
+	var buf bytes.Buffer
 
-## Info
+	data := map[string]int{
+		"AccountBalance": AccountBalance,
+	}
 
-* Kontostand: 23,23€
-`
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		return fmt.Errorf("execute template: %w", err)
+	}
+	resultString := buf.String()
 
-func SendNotification() {
-	http.Post("https://ntfy.sh/thinkjd_munch_o_matic", "text/markdown",
-		strings.NewReader(NextWeeksMenu))
+	err = SendNotification("thinkjd_munch_o_matic", resultString)
+	if err != nil {
+		return fmt.Errorf("Sending failed: %w", err)
+	}
+	return nil
+}
 
+func SendNotification(Topic string, Content string) error {
+	http.Post("https://ntfy.sh/"+Topic, "text/markdown",
+		strings.NewReader(Content))
+
+	return nil
 }
