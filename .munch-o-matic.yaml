@@ -13,13 +13,17 @@ Core:
     Jobs:
       - name: Check Account Balance
         params:
-          email: my@mail.de
-          minbalance: 5
+          topic: my_ntfy_topic
+          minbalance: 3000
+          template: "Your account balanc is low: {{.User.Customer.AccountBalance.Amount}}ct"
         schedule: "*/10 * * * * *"
         type: CheckBalance
       - name: Order Food
         params:
           strategy: SchooFav
-          weeks: 1
+          weeks: 2
+          topic: my_ntfy_topic
+          template: |
+            Food order
         schedule: "*/20 * * * * *"
         type: Order
