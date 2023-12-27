@@ -12,7 +12,7 @@ var notification = &cobra.Command{
 	Short: "Send notifications",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		err := core.SendNotification("thinkjd_munch_o_matic", title, message)
+		err := core.SendNotification(ntfyTopic, title, message)
 		if err != nil {
 			log.Fatal("could not send notification: ", err)
 		}
