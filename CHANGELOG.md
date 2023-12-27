@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/thinkJD/munch-o-matic/compare/v1.0.1...v1.1.0) (2023-12-27)
+
+
+### Features
+
+* Add low balance notification ([#28](https://github.com/thinkJD/munch-o-matic/issues/28)) ([27c563d](https://github.com/thinkJD/munch-o-matic/commit/27c563d1a395fc850f15ba5b4d385181cf55aa21))
+
 ## [1.0.1](https://github.com/thinkJD/munch-o-matic/compare/v1.0.0...v1.0.1) (2023-11-25)
 
 
