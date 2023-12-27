@@ -13,17 +13,16 @@ Core:
     Jobs:
       - name: Check Account Balance
         params:
-          topic: thinkjd_munch_o_matic
+          topic: my_ntfy_topic
           minbalance: 3000
-          template: |
-            Your account balance is low: {{.AccountBalance}}€
+          template: "Your account balanc is low: {{.User.Customer.AccountBalance.Amount}}ct"
         schedule: "*/10 * * * * *"
         type: CheckBalance
       - name: Order Food
         params:
           strategy: SchooFav
           weeks: 2
-          topic: thinkjd_munch_o_matic
+          topic: my_ntfy_topic
           template: |
             Food order
         schedule: "*/20 * * * * *"

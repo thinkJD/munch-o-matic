@@ -36,9 +36,9 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Update configuration
-		viper.Set("Core.SessionCredentials.SessionID", cli.SessionID)
-		viper.Set("Core.SessionCredentials.UserId", cli.UserId)
-		viper.Set("Core.SessionCredentials.CustomerId", cli.CustomerId)
+		viper.Set("client.SessionCredentials.SessionID", cli.SessionID)
+		viper.Set("client.SessionCredentials.UserId", cli.UserId)
+		viper.Set("client.SessionCredentials.CustomerId", cli.CustomerId)
 		err = viper.WriteConfig()
 		if err != nil {
 			log.Fatal(err)

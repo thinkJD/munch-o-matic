@@ -4,20 +4,6 @@ My children receive their school meals from a local caterer. Every day, there ar
 
 munch-o-matic can order dishes automatically based on multiple strategies. Use it from your terminal or run it in daemon mode on your server. You can change the orders whenever you like using the official web UI.
 
-## Jobs
-
-checkBalance
-Weekly on Wednesday 17:00
-If balance is bellow 20€ (5 Days)
-
-orderFood
-Weekly on Wednesday 17:00
-auto-order --weeks 2 --strategy SchoolFav
-
-updateMetrics
-Get all upcoming dishes and update the counter
-Hourly
-
 ## Demo
 
 ![](https://github.com/thinkJD/munch-o-matic/blob/main/assets/render1700930307166.gif)
