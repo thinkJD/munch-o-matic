@@ -20,6 +20,7 @@ var notification = &cobra.Command{
 }
 
 func init() {
+	notification.Flags().StringVarP(&ntfyTopic, "topic", "T", "", "Ntfy topic")
 	notification.Flags().StringVarP(&title, "title", "t", "CLI", "Notification title")
 	notification.Flags().StringVarP(&message, "message", "m", "", "Notificatoin message")
 	rootCmd.AddCommand(notification)
