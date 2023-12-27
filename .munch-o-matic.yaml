@@ -23,6 +23,8 @@ Core:
         params:
           strategy: SchooFav
           weeks: 2
-          notification_topic: thinkjd
+          topic: thinkjd_munch_o_matic
+          template: |
+            Food order
         schedule: "*/20 * * * * *"
         type: Order

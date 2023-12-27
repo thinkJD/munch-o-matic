@@ -120,9 +120,9 @@ func (d Daemon) sendLowBalanceNotification(ch chan string, MinBalance int, Topic
 		}
 
 		if user.User.Customer.AccountBalance.Amount <= MinBalance {
-			ch <- fmt.Sprintf("Account balance below minimum")
+			ch <- fmt.Sprint("Account balance below minimum")
 			template := "Hello, your balance: {{.User.Customer.AccountBalance.Amount}}"
-			SendTemplateNotification("thinkjd_munch_o_matic", template, user)
+			SendTemplateNotification("thinkjd_munch_o_matic", "Low balance notification", template, user)
 		}
 
 	}

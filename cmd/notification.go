@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"log"
 	"munch-o-matic/core"
 
 	"github.com/spf13/cobra"
@@ -11,21 +12,15 @@ var notification = &cobra.Command{
 	Short: "Send notifications",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		template := "Hello, your balance: {{.User.Customer.AccountBalance.Amount}}"
-
-		user, err := cli.GetUser()
+		err := core.SendNotification("thinkjd_munch_o_matic", title, message)
 		if err != nil {
-			print("Error: ", err)
-		}
-
-		err = core.SendTemplateNotification("thinkjd_munch_o_matic", template, user)
-		if err != nil {
-			print(err)
+			log.Fatal("could not send notification: ", err)
 		}
 	},
 }
 
 func init() {
-
+	notification.Flags().StringVarP(&title, "title", "t", "CLI", "Notification title")
+	notification.Flags().StringVarP(&message, "message", "m", "", "Notificatoin message")
 	rootCmd.AddCommand(notification)
 }
