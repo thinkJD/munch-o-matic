@@ -34,13 +34,14 @@ func NewDaemon(Cfg Config, Cli *client.RestClient) (*Daemon, error) {
 func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
 	switch Job.Type {
 	case "CheckBalance":
-		email, ok1 := Job.Params["email"].(string)
+		topic, ok1 := Job.Params["topic"].(string)
 		minBalance, ok2 := Job.Params["minbalance"].(int)
-		if !ok1 || !ok2 {
+		template, ok3 := Job.Params["template"].(string)
+		if !ok1 || !ok2 || !ok3 {
 			return fmt.Errorf("invalid parameter types for CheckBalance")
 		}
 
-		_, err := d.chron.AddFunc(Job.Schedule, d.sendLowBalanceEmail(StatusChan, minBalance, email))
+		_, err := d.chron.AddFunc(Job.Schedule, d.sendLowBalanceNotification(StatusChan, minBalance, topic, template))
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
 		}
@@ -110,14 +111,19 @@ func (d Daemon) orderFood(ch chan string, Strategy string, WeeksInAdvance int) f
 	}
 }
 
-func (d Daemon) sendLowBalanceEmail(ch chan string, MinBalance int, Email string) func() {
+func (d Daemon) sendLowBalanceNotification(ch chan string, MinBalance int, Topic string, Template string) func() {
 	return func() {
-		// Simulating checking balance and sending email
-		balance := 50 // let's say
-		if balance < 100 {
-			ch <- fmt.Sprintf("Balance < %v; Email sent to %v", MinBalance, Email)
-		} else {
-			ch <- "Balance is okay."
+		ch <- fmt.Sprint("Checking account balance")
+		user, err := d.cli.GetUser()
+		if err != nil {
+			ch <- fmt.Sprintf("trouble getting user details: %v", err.Error())
 		}
+
+		if user.User.Customer.AccountBalance.Amount <= MinBalance {
+			ch <- fmt.Sprintf("Account balance below minimum")
+			template := "Hello, your balance: {{.User.Customer.AccountBalance.Amount}}"
+			SendTemplateNotification("thinkjd_munch_o_matic", template, user)
+		}
+
 	}
 }

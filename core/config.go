@@ -34,7 +34,7 @@ func ValidateConfig(Config Config) error {
 
 		switch job.Type {
 		case "CheckBalance":
-			if email, ok := job.Params["email"].(string); !ok || email == "" {
+			if topic, ok := job.Params["topic"].(string); !ok || topic == "" {
 				return fmt.Errorf("CheckBalance job '%v' is missing or has an invalid Email", job.Name)
 			}
 			if minBalance, ok := job.Params["minbalance"].(int); !ok || minBalance <= 0 {

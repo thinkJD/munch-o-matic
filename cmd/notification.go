@@ -10,7 +10,18 @@ var notification = &cobra.Command{
 	Use:   "send-notification",
 	Short: "Send notifications",
 	Run: func(cmd *cobra.Command, args []string) {
-		core.SendAccountBalanceNotification(3000)
+
+		template := "Hello, your balance: {{.User.Customer.AccountBalance.Amount}}"
+
+		user, err := cli.GetUser()
+		if err != nil {
+			print("Error: ", err)
+		}
+
+		err = core.SendTemplateNotification("thinkjd_munch_o_matic", template, user)
+		if err != nil {
+			print(err)
+		}
 	},
 }
 

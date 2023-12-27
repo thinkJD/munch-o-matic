@@ -8,33 +8,28 @@ import (
 	"text/template"
 )
 
-func SendAccountBalanceNotification(AccountBalance int) error {
-	tplString := `Account balance low: {{.AccountBalance}}`
-
-	tmpl, err := template.New("accountBalance").Parse(tplString)
+// SendTemplateNotification takes a template and matching sate to render the template and
+// send to the provided topic.
+func SendTemplateNotification(Topic string, Template string, Data interface{}) error {
+	tmpl, err := template.New("template").Parse(Template)
 	if err != nil {
 		return fmt.Errorf("create template: %w", err)
 	}
-
 	var buf bytes.Buffer
 
-	data := map[string]int{
-		"AccountBalance": AccountBalance,
-	}
-
-	err = tmpl.Execute(&buf, data)
+	err = tmpl.Execute(&buf, Data)
 	if err != nil {
 		return fmt.Errorf("execute template: %w", err)
 	}
-	resultString := buf.String()
-
-	err = SendNotification("thinkjd_munch_o_matic", resultString)
+	renderedTemplate := buf.String()
+	err = SendNotification(Topic, renderedTemplate)
 	if err != nil {
-		return fmt.Errorf("Sending failed: %w", err)
+		return fmt.Errorf("sending failed: %w", err)
 	}
 	return nil
 }
 
+// SendNotification sends the provided message to the topic
 func SendNotification(Topic string, Content string) error {
 	http.Post("https://ntfy.sh/"+Topic, "text/markdown",
 		strings.NewReader(Content))

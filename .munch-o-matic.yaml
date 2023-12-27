@@ -14,7 +14,7 @@ Core:
       - name: Check Account Balance
         params:
           topic: thinkjd_munch_o_matic
-          minbalance: 5
+          minbalance: 3000
           template: |
             Your account balance is low: {{.AccountBalance}}€
         schedule: "*/10 * * * * *"
