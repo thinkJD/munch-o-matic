@@ -36,7 +36,7 @@ func SendNotification(Topic string, Title string, Message string) error {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("could not send notification: %w")
+		return fmt.Errorf("could not send notification: %w", err)
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("send notification failed with status %s", resp.Status)
