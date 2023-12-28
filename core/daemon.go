@@ -174,10 +174,18 @@ func (d Daemon) updateMetrics(ch chan jobStatus) func() {
 	return func() {
 		var jobId = "updateMetrics"
 		ch <- jobStatus{JobId: jobId, Msg: "Update metrics"}
-		//upcommingDishes, err := d.cli.GetMenuWeeks(4)
-		//if err != nil {
+		menuWeeks, err := d.cli.GetMenuWeeks(4)
+		if err != nil {
+			ch <- jobStatus{JobId: jobId, Err: fmt.Errorf("could not load dishes: %w", err)}
+		}
 
-		//}
-		//UpdateOrdersPlaced()
+		for _, dishes := range menuWeeks {
+			for _, dish := range dishes {
+				if dish.Dummy {
+					continue
+				}
+				UpdateOrdersPlaced(dish.OrderId, dish.Dish.Name, dish.Orders)
+			}
+		}
 	}
 }
