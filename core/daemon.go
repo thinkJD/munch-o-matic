@@ -187,5 +187,6 @@ func (d Daemon) updateMetrics(ch chan jobStatus) func() {
 				UpdateOrdersPlaced(dish.OrderId, dish.Dish.Name, dish.Orders)
 			}
 		}
+
 	}
 }
