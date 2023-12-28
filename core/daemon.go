@@ -177,6 +177,7 @@ func (d Daemon) updateMetrics(ch chan jobStatus) func() {
 		menuWeeks, err := d.cli.GetMenuWeeks(4)
 		if err != nil {
 			ch <- jobStatus{JobId: jobId, Err: fmt.Errorf("could not load dishes: %w", err)}
+			return
 		}
 
 		for _, dishes := range menuWeeks {
@@ -188,5 +189,12 @@ func (d Daemon) updateMetrics(ch chan jobStatus) func() {
 			}
 		}
 
+		user, err := d.cli.GetUser()
+		if err != nil {
+			ch <- jobStatus{JobId: jobId, Err: fmt.Errorf("could not load user: %w", err)}
+			return
+		}
+
+		UpdateAccountBalance(user.User.ID, user.User.FirstName, user.User.Customer.AccountBalance.Amount)
 	}
 }
