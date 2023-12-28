@@ -47,6 +47,8 @@ func ValidateConfig(Config Config) error {
 			if weeks, ok := job.Params["weeks"].(int); !ok || weeks <= 0 {
 				return fmt.Errorf("Order job '%v' is missing or has an invalid WeeksInAdvance", job.Name)
 			}
+		case "UpdateMetrics":
+			break
 		default:
 			return fmt.Errorf("unknown job type '%v'", job.Type)
 		}

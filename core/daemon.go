@@ -2,9 +2,11 @@ package core
 
 import (
 	"fmt"
-
 	"munch-o-matic/client"
-	"time"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/robfig/cron/v3"
 )
@@ -31,7 +33,7 @@ func NewDaemon(Cfg Config, Cli *client.RestClient) (*Daemon, error) {
 	return &retVal, nil
 }
 
-func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
+func (d *Daemon) AddJob(StatusChan chan jobStatus, Job Job) error {
 	switch Job.Type {
 	case "CheckBalance":
 		topic, ok1 := Job.Params["topic"].(string)
@@ -56,47 +58,86 @@ func (d *Daemon) AddJob(StatusChan chan string, Job Job) error {
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
 		}
+
+	case "UpdateMetrics":
+		_, err := d.chron.AddFunc(Job.Schedule, d.updateMetrics(StatusChan))
+		if err != nil {
+			return fmt.Errorf("error adding job: %w", err)
+		}
+
 	default:
 		return fmt.Errorf("%v is not a valid type", Job.Type)
 	}
 	return nil
 }
 
-func (d Daemon) Run() error {
+type jobStatus struct {
+	JobId string
+	Msg   string
+	Err   error
+}
 
-	statusChan := make(chan string)
+func (d Daemon) Run() error {
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
+
+	statusChan := make(chan jobStatus)
 
 	for _, job := range d.cfg.DaemonConfiguration.Jobs {
 		d.AddJob(statusChan, job)
 	}
 
+	// Handle status updates and errors
 	go func() {
 		for msg := range statusChan {
-			fmt.Println(msg)
+			if msg.Err != nil {
+				fmt.Errorf("error in job=%s\t%w\n", msg.JobId, msg.Err)
+			}
+			fmt.Printf("%s:\t%s\n", msg.JobId, msg.Msg)
 		}
 	}()
 
-	fmt.Println(d.chron.Entries())
+	// Run metrics server
+	go func() {
+		http.Handle("/metrics", GetPrometheusHandler())
+		fmt.Println("Metrics server is running on :9090")
+		if err := http.ListenAndServe(":9090", nil); err != nil {
+			fmt.Println("Failed to start the metrics server:", err)
+		}
+	}()
 
+	// Handle signals and clean up
+	go func() {
+		<-stopChan // wait for interrupt signal
+		fmt.Println("Shutting down...")
+
+		d.chron.Stop()
+		close(statusChan)
+
+		fmt.Println("Shutdown complete")
+		os.Exit(0)
+	}()
+
+	// Start cron jobs
 	d.chron.Start()
 	fmt.Println("Next job execution: ", d.chron.Entries()[0].Next)
-	// Let it run for 2 minutes to see a couple of executions
-	time.Sleep(2 * time.Minute)
-	d.chron.Stop()
 
-	return nil
+	// Block here until interrupted
+	select {}
+
 }
 
-func (d Daemon) orderFood(ch chan string, Strategy string, WeeksInAdvance int) func() {
+func (d Daemon) orderFood(ch chan jobStatus, Strategy string, WeeksInAdvance int) func() {
 	return func() {
+		var jobId = "orderFood"
 		menu, err := d.cli.GetMenuWeeks(WeeksInAdvance)
 		if err != nil {
-			ch <- fmt.Sprintf("trouble getting menu: %v", err.Error())
+			ch <- jobStatus{JobId: jobId, Err: fmt.Errorf("trouble getting menu: %v", err.Error())}
 		}
 
 		dishes, err := ChooseDishesByStrategy(Strategy, menu)
 		if err != nil {
-			ch <- fmt.Sprintf("Trouble choosing dish: %v", err.Error())
+			ch <- jobStatus{JobId: jobId, Err: fmt.Errorf("Trouble choosing dish: %v", err.Error())}
 		}
 		fmt.Println(dishes)
 		/*
@@ -107,22 +148,36 @@ func (d Daemon) orderFood(ch chan string, Strategy string, WeeksInAdvance int) f
 				}
 			}
 		*/
-		ch <- fmt.Sprintf("Food ordered with %v strategy, for %v weeks", Strategy, WeeksInAdvance)
+		ch <- jobStatus{JobId: jobId, Msg: fmt.Sprintf("Food ordered with %v strategy, for %v weeks", Strategy, WeeksInAdvance)}
 	}
 }
 
-func (d Daemon) sendLowBalanceNotification(ch chan string, MinBalance int, Topic string, Template string) func() {
+func (d Daemon) sendLowBalanceNotification(ch chan jobStatus, MinBalance int, Topic string, Template string) func() {
 	return func() {
-		ch <- fmt.Sprint("Checking account balance")
+		var jobId = "sendLowBalanceNotification"
+		ch <- jobStatus{JobId: jobId, Msg: "Checking account balance"}
+
 		user, err := d.cli.GetUser()
 		if err != nil {
-			ch <- fmt.Sprintf("trouble getting user details: %v", err.Error())
+			ch <- jobStatus{JobId: jobId, Err: fmt.Errorf("trouble getting user details: %v", err.Error())}
 		}
 
 		if user.User.Customer.AccountBalance.Amount <= MinBalance {
-			ch <- fmt.Sprint("Account balance below minimum")
+			ch <- jobStatus{JobId: jobId, Msg: "Account balance below minimum"}
 			SendTemplateNotification("thinkjd_munch_o_matic", "Low balance notification", Template, user)
 		}
 
+	}
+}
+
+func (d Daemon) updateMetrics(ch chan jobStatus) func() {
+	return func() {
+		var jobId = "updateMetrics"
+		ch <- jobStatus{JobId: jobId, Msg: "Update metrics"}
+		//upcommingDishes, err := d.cli.GetMenuWeeks(4)
+		//if err != nil {
+
+		//}
+		//UpdateOrdersPlaced()
 	}
 }

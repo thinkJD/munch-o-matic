@@ -18,6 +18,9 @@ Core:
           template: "Your account balanc is low: {{.User.Customer.AccountBalance.Amount}}ct"
         schedule: "*/10 * * * * *"
         type: CheckBalance
+      - name: Update Metrics
+        schedule: "*/10 * * * * *"
+        type: UpdateMetrics
       - name: Order Food
         params:
           strategy: SchooFav
