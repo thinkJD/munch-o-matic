@@ -194,7 +194,12 @@ func (d Daemon) updateMetrics(ch chan jobStatus) func() {
 			ch <- jobStatus{JobId: jobId, Err: fmt.Errorf("could not load user: %w", err)}
 			return
 		}
-
 		UpdateAccountBalance(user.User.ID, user.User.FirstName, user.User.Customer.AccountBalance.Amount)
+
+		totalPayed := 0
+		for _, i := range user.User.Customer.Bookings {
+			totalPayed += i.BookingPrice
+		}
+		UpdatePaymentsTotal(user.User.ID, user.User.FirstName, totalPayed)
 	}
 }

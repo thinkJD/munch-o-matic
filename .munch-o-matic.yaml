@@ -19,7 +19,7 @@ Core:
         schedule: "*/10 * * * * *"
         type: CheckBalance
       - name: Update Metrics
-        schedule: "*/10 * * * * *"
+        schedule: "0 * * * * *"
         type: UpdateMetrics
       - name: Order Food
         params:

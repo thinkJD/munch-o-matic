@@ -20,10 +20,17 @@ var accountBalance = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	[]string{"user_id", "user_name"},
 )
 
+var paymentsTotal = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Name: "payments_total",
+	Help: "Tracks total payments"},
+	[]string{"user_id", "user_name"},
+)
+
 func init() {
 	// Register metrics with Prometheus's default registry.
 	prometheus.MustRegister(dishOrders)
 	prometheus.MustRegister(accountBalance)
+	prometheus.MustRegister(paymentsTotal)
 }
 
 func UpdateOrdersPlaced(OrderId int, DishName string, NumOrders int) {
@@ -32,6 +39,10 @@ func UpdateOrdersPlaced(OrderId int, DishName string, NumOrders int) {
 
 func UpdateAccountBalance(UserId int, UserName string, Balance int) {
 	accountBalance.With(prometheus.Labels{"user_id": fmt.Sprint(UserId), "user_name": UserName}).Set(float64(Balance))
+}
+
+func UpdatePaymentsTotal(UserId int, UserName string, Value int) {
+	paymentsTotal.With(prometheus.Labels{"user_id": fmt.Sprint(UserId), "user_name": UserName}).Set(float64(Value))
 }
 
 // GetPrometheusHandler returns the HTTP handler for Prometheus metrics.
