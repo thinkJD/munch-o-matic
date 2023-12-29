@@ -8,7 +8,7 @@ client:
     userid: 0
 core:
   daemonconfiguration:
-    notifications:
+    notification:
       error:
         enabled: true
         topic: "op://Shared/cwy2qzscaueswq5uqhcwlgm44q/munch-o-matic/ntfy error topic"
