@@ -9,19 +9,19 @@ import (
 )
 
 var dishOrders = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-	Name: "total_orders_per_dish",
+	Name: "mom_total_orders_per_dish",
 	Help: "Total number of orders per dish"},
 	[]string{"order_id", "dish_name"},
 )
 
 var accountBalance = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-	Name: "account_balance",
+	Name: "mom_account_balance",
 	Help: "Account balance in cent"},
 	[]string{"user_id", "user_name"},
 )
 
 var paymentsTotal = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-	Name: "payments_total",
+	Name: "mom_payments_total",
 	Help: "Tracks total payments"},
 	[]string{"user_id", "user_name"},
 )
