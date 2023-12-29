@@ -1,0 +1,31 @@
+# https://taskfile.dev
+
+version: "3"
+
+tasks:
+  inject-secrets:
+    desc: Inject secrets in config file (1Password)
+    sources:
+      - ./munch-o-matic.yaml
+    generates:
+      - ./config.yaml
+    cmds:
+      - op inject -i munch-o-matic.yaml -o config.yaml
+    silent: true
+
+  run:
+    deps: ["inject-secrets"]
+    cmds:
+      - go run . --config=config.yaml {{.CLI_ARGS}}
+
+  upgrade-deps:
+    cmds:
+      - go get -u
+      - go mod tidy
+
+  install:
+    deps: ["inject-secrets"]
+    cmds:
+      - mkdir -p /opt/munch-o-matic/data
+      - cp ./config.yaml /opt/munch-o-matic/data/config.yaml
+      - cp ./docker-compose.yaml /opt/munch-o-matic/docker-compose.yaml

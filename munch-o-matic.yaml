@@ -1,0 +1,29 @@
+client:
+  logincredentials:
+    password: op://Shared/cwy2qzscaueswq5uqhcwlgm44q/password
+    user: op://Shared/cwy2qzscaueswq5uqhcwlgm44q/username
+  sessioncredentials:
+    customerid: 0
+    sessionid: ""
+    userid: 0
+core:
+  daemonconfiguration:
+    notifications:
+      error:
+        enabled: true
+        topic: "op://Shared/cwy2qzscaueswq5uqhcwlgm44q/munch-o-matic/ntfy error topic"
+      status:
+        enabled: true
+        topic: "op://Shared/cwy2qzscaueswq5uqhcwlgm44q/munch-o-matic/ntfy status topic"
+    jobs:
+      - name: Check Account Balance
+        params:
+          minbalance: 3000
+          template: |
+            Your account balanc is low: {{"{{.User.Customer.AccountBalance.Amount}}"}}ct
+        schedule: "* 1 * * * *"
+        type: CheckBalance
+
+      - name: UpdateMetrics
+        schedule: "0 * * * * *"
+        type: UpdateMetrics
