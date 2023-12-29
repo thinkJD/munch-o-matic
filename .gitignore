@@ -26,3 +26,4 @@ munch-o-matic
 
 # Credentials
 .munch-o-matic.yaml
+config.yaml

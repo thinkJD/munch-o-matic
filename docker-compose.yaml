@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  munch-omatic:
+    image: ghcr.io/thinkjd/munch-o-matic:add-metrics
+    container_name: munch-o-matic
+    ports:
+      - "9091:9090"
+    command: ["app", "--config=/app/data/config.yaml", "daemon"]
+    volumes:
+      - /opt/munch-o-matic/data:/app/data
+    restart: unless-stopped
