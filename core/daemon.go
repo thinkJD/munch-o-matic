@@ -36,14 +36,13 @@ func NewDaemon(Cfg Config, Cli *client.RestClient) (*Daemon, error) {
 func (d *Daemon) AddJob(StatusChan chan jobStatus, Job Job) error {
 	switch Job.Type {
 	case "CheckBalance":
-		topic, ok1 := Job.Params["topic"].(string)
-		minBalance, ok2 := Job.Params["minbalance"].(int)
-		template, ok3 := Job.Params["template"].(string)
-		if !ok1 || !ok2 || !ok3 {
+		minBalance, ok1 := Job.Params["minbalance"].(int)
+		template, ok2 := Job.Params["template"].(string)
+		if !ok1 || !ok2 {
 			return fmt.Errorf("invalid parameter types for CheckBalance")
 		}
 
-		_, err := d.chron.AddFunc(Job.Schedule, d.sendLowBalanceNotification(StatusChan, minBalance, topic, template))
+		_, err := d.chron.AddFunc(Job.Schedule, d.sendLowBalanceNotification(StatusChan, minBalance, template))
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
 		}
@@ -91,7 +90,11 @@ func (d Daemon) Run() error {
 	go func() {
 		for msg := range statusChan {
 			if msg.Err != nil {
-				fmt.Errorf("error in job=%s\t%w\n", msg.JobId, msg.Err)
+				err := fmt.Errorf("error in job=%s\t%w", msg.JobId, msg.Err)
+				if d.cfg.DaemonConfiguration.Notification.Error.Enabled {
+					SendNotification(d.cfg.DaemonConfiguration.Notification.Error.Topic,
+						"Error", err.Error())
+				}
 			}
 			fmt.Printf("%s:\t%s\n", msg.JobId, msg.Msg)
 		}
@@ -127,6 +130,8 @@ func (d Daemon) Run() error {
 
 }
 
+// Jobs
+// ##########
 func (d Daemon) orderFood(ch chan jobStatus, Strategy string, WeeksInAdvance int) func() {
 	return func() {
 		var jobId = "orderFood"
@@ -152,7 +157,7 @@ func (d Daemon) orderFood(ch chan jobStatus, Strategy string, WeeksInAdvance int
 	}
 }
 
-func (d Daemon) sendLowBalanceNotification(ch chan jobStatus, MinBalance int, Topic string, Template string) func() {
+func (d Daemon) sendLowBalanceNotification(ch chan jobStatus, MinBalance int, Template string) func() {
 	return func() {
 		var jobId = "sendLowBalanceNotification"
 		ch <- jobStatus{JobId: jobId, Msg: "Checking account balance"}
@@ -164,7 +169,8 @@ func (d Daemon) sendLowBalanceNotification(ch chan jobStatus, MinBalance int, To
 
 		if user.User.Customer.AccountBalance.Amount <= MinBalance {
 			ch <- jobStatus{JobId: jobId, Msg: "Account balance below minimum"}
-			SendTemplateNotification("thinkjd_munch_o_matic", "Low balance notification", Template, user)
+
+			SendTemplateNotification(d.cfg.DaemonConfiguration.Notification.Status.Topic, "Low balance notification", Template, user)
 		}
 
 	}
