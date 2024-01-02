@@ -1,17 +1,15 @@
-# https://taskfile.dev
-
 version: "3"
 
 tasks:
   inject-secrets:
-    desc: Inject secrets in config file (1Password)
+    desc: Inject 1Password secrets in config file
     sources:
-      - ./munch-o-matic.yaml
+      - "munch-o-matic.yaml"
     generates:
-      - ./config.yaml
+      - "config.yaml"
     cmds:
+      - rm config.yaml
       - op inject -i munch-o-matic.yaml -o config.yaml
-    silent: true
 
   run:
     deps: ["inject-secrets"]

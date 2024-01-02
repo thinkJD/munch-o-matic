@@ -6,9 +6,10 @@ client:
     customerid: 0
     sessionid: ""
     userid: 0
+
 core:
   daemonconfiguration:
-    notifications:
+    notification:
       error:
         enabled: true
         topic: "op://Shared/cwy2qzscaueswq5uqhcwlgm44q/munch-o-matic/ntfy error topic"
@@ -21,7 +22,7 @@ core:
           minbalance: 3000
           template: |
             Your account balanc is low: {{"{{.User.Customer.AccountBalance.Amount}}"}}ct
-        schedule: "* 1 * * * *"
+        schedule: "* */15 * * * *"
         type: CheckBalance
 
       - name: UpdateMetrics
