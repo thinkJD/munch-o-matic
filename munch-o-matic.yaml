@@ -6,6 +6,7 @@ client:
     customerid: 0
     sessionid: ""
     userid: 0
+
 core:
   daemonconfiguration:
     notification:
@@ -21,7 +22,7 @@ core:
           minbalance: 3000
           template: |
             Your account balanc is low: {{"{{.User.Customer.AccountBalance.Amount}}"}}ct
-        schedule: "* 1 * * * *"
+        schedule: "* */15 * * * *"
         type: CheckBalance
 
       - name: UpdateMetrics
