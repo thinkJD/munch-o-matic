@@ -65,10 +65,12 @@ func (d Daemon) Run() error {
 			if !d.cfg.DaemonConfiguration.Notification.Status.Enabled {
 				continue
 			}
-
-			SendTemplateNotification(
+			err := SendTemplateNotification(
 				d.cfg.DaemonConfiguration.Notification.Status.Topic,
 				msg.Title, msg.Template, msg.Data)
+			if err != nil {
+				fmt.Print(err)
+			}
 		}
 	}()
 
@@ -129,19 +131,30 @@ func (d *Daemon) AddJob(Job Job) error {
 			return fmt.Errorf("error adding job: %w", err)
 		}
 
-	case "Order":
+	case "AutoOrder":
 		strategy, ok1 := Job.Params["strategy"].(string)
 		weeks, ok2 := Job.Params["weeks"].(int)
-		if !ok1 || !ok2 {
+		template, ok3 := Job.Params["template"].(string)
+		if !ok1 || !ok2 || !ok3 {
 			return fmt.Errorf("invalid parameter types for Order")
 		}
-		_, err := d.chron.AddFunc(Job.Schedule, d.orderFood(strategy, weeks))
+		_, err := d.chron.AddFunc(Job.Schedule, d.autoOrder(strategy, weeks, template))
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
 		}
 
 	case "UpdateMetrics":
 		_, err := d.chron.AddFunc(Job.Schedule, d.updateMetrics())
+		if err != nil {
+			return fmt.Errorf("error adding job: %w", err)
+		}
+
+	case "NextWeekSummery":
+		template, ok1 := Job.Params["template"].(string)
+		if !ok1 {
+			return fmt.Errorf("invalid parameter for order")
+		}
+		_, err := d.chron.AddFunc(Job.Schedule, d.nexWeekSummery(template))
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
 		}
@@ -154,28 +167,20 @@ func (d *Daemon) AddJob(Job Job) error {
 
 // Jobs
 // ##########
-
-func (d Daemon) orderFood(Strategy string, WeeksInAdvance int) func() {
+func (d Daemon) autoOrder(Strategy string, WeeksInAdvance int, Template string) func() {
 	return func() {
-		var jobId = "orderFood"
-		menu, err := d.cli.GetMenuWeeks(WeeksInAdvance)
-		if err != nil {
-			d.statusChan <- jobStatus{JobId: jobId, Err: fmt.Errorf("trouble getting menu: %v", err.Error())}
-		}
+		// get menu
+		var jobId = "autoOrder"
+		weeks := client.GetNextCalenderWeeks(WeeksInAdvance)
 
-		dishes, err := ChooseDishesByStrategy(Strategy, menu)
-		if err != nil {
-			d.statusChan <- jobStatus{JobId: jobId, Err: fmt.Errorf("Trouble choosing dish: %v", err.Error())}
-		}
-		fmt.Println(dishes)
-		/*
-			for _, dish := range dishes {
-				err := Cli.OrderDish(dish.OrderId, false)
-				if err != nil {
-					ch <- fmt.Sprintf("Could not order")
-				}
+		for _, week := range weeks {
+			ordered, err := AutoOrderWeek(d.cli, week.CalendarWeek, week.Year, Strategy, false)
+			if err != nil {
+				d.statusChan <- jobStatus{JobId: jobId, Err: fmt.Errorf("failed placing order: %w", err)}
+				return
 			}
-		*/
+			d.notificationChan <- jobNotification{JobId: jobId, Title: "Order Placed", Template: Template, Data: ordered}
+		}
 		d.statusChan <- jobStatus{JobId: jobId, Msg: fmt.Sprintf("Food ordered with %v strategy, for %v weeks", Strategy, WeeksInAdvance)}
 	}
 }
@@ -192,6 +197,7 @@ func (d Daemon) sendLowBalanceNotification(MinBalance int, Template string) func
 
 		if user.User.Customer.AccountBalance.Amount <= MinBalance {
 			d.statusChan <- jobStatus{JobId: jobId, Msg: "Account balance below minimum"}
+
 			// Send notification
 			d.notificationChan <- jobNotification{
 				JobId:    jobId,
@@ -234,5 +240,18 @@ func (d Daemon) updateMetrics() func() {
 			totalPayed += i.BookingPrice
 		}
 		UpdatePaymentsTotal(user.User.ID, user.User.FirstName, totalPayed)
+	}
+}
+
+func (d Daemon) nexWeekSummery(Template string) func() {
+	return func() {
+		jobId := "nextWeekSummery"
+		d.statusChan <- jobStatus{JobId: jobId, Msg: "Send order summery"}
+		weeks := client.GetNextCalenderWeeks(2)
+		dishes, err := d.cli.GetMenuWeek(weeks[1].Year, weeks[1].CalendarWeek)
+		if err != nil {
+			d.statusChan <- jobStatus{JobId: jobId, Err: fmt.Errorf("could not fetch week %v:%w", weeks[1].CalendarWeek, err)}
+		}
+		d.notificationChan <- jobNotification{JobId: jobId, Title: "Next weeks order", Template: Template, Data: dishes}
 	}
 }

@@ -82,8 +82,12 @@ func validateJob(job Job) error {
 		if minBalance, ok := job.Params["minbalance"].(int); !ok || minBalance <= 0 {
 			return fmt.Errorf("CheckBalance job '%v' is missing or has an invalid MinBalance", job.Name)
 		}
+	case "AutoOrder":
+		break
 	case "UpdateMetrics":
 		// Specific validation for UpdateMetrics job if needed
+		break
+	case "NextWeekSummery":
 		break
 	// Add cases for other job types as necessary
 	default:

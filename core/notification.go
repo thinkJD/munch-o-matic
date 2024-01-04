@@ -21,6 +21,7 @@ func SendTemplateNotification(Topic string, Title string, Template string, Data 
 	if err != nil {
 		return fmt.Errorf("execute template: %w", err)
 	}
+
 	renderedTemplate := buf.String()
 	err = SendNotification(Topic, Title, renderedTemplate)
 	if err != nil {

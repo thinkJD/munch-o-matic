@@ -4,9 +4,9 @@ import "time"
 
 // Client types
 type Dish struct {
-	ID          int    `json:"id"`
-	Description string `json:"description"`
-	Name        string `json:"name"`
+	ID          int    `json:"ID"`
+	Description string `json:"Description"`
+	Name        string `json:"Name"`
 }
 
 type UpcomingDish struct {

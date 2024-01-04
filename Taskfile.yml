@@ -8,7 +8,6 @@ tasks:
     generates:
       - "config.yaml"
     cmds:
-      - rm config.yaml
       - op inject -i munch-o-matic.yaml -o config.yaml
 
   run:
