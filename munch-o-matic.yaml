@@ -1,7 +1,7 @@
 client:
   logincredentials:
-    password: op://Shared/cwy2qzscaueswq5uqhcwlgm44q/password
-    user: op://Shared/cwy2qzscaueswq5uqhcwlgm44q/username
+    password: op://infra/mejknwa4fefug2nfrb2khaq55a/password
+    user: op://infra/mejknwa4fefug2nfrb2khaq55a/username
   sessioncredentials:
     customerid: 0
     sessionid: ""
@@ -12,10 +12,10 @@ core:
     notification:
       error:
         enabled: true
-        topic: "op://Shared/cwy2qzscaueswq5uqhcwlgm44q/munch-o-matic/ntfy error topic"
+        topic: op://infra/mejknwa4fefug2nfrb2khaq55a/munch-o-matic/ntfy status topic
       status:
         enabled: true
-        topic: "op://Shared/cwy2qzscaueswq5uqhcwlgm44q/munch-o-matic/ntfy status topic"
+        topic: op://infra/mejknwa4fefug2nfrb2khaq55a/munch-o-matic/ntfy status topic
     jobs:
       - name: Order Dishes
         schedule: "0 0 12 * * 4"
