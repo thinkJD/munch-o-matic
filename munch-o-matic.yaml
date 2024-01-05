@@ -17,14 +17,49 @@ core:
         enabled: true
         topic: "op://Shared/cwy2qzscaueswq5uqhcwlgm44q/munch-o-matic/ntfy status topic"
     jobs:
+      - name: Order Dishes
+        schedule: "0 0 12 * * 4"
+        type: AutoOrder
+        params:
+          strategy: SchoolFav
+          weeks: 2
+          template: |
+            Order placed!
+            {{"{{ range $key, $value := . }}"}}
+            {{"{{ $key }}"}} {{"{{ $value }}"}}
+            {{"{{ end }}"}}
+
+      - name: Send order summary
+        schedule: "0 5 12 * * 4"
+        type: NextWeeksummary
+        params:
+          template: |
+            {{"{{- range $date, $dishes := . }}"}}
+              # {{"{{$date}}"}}
+              {{"{{- if gt (len $dishes) 0 }}"}}
+                  **{{"{{(index $dishes 0).Dish.Name}}"}}** {{"{{ if (index $dishes 0).Booked }}"}}😋{{"{{ end }}"}}
+                  *{{"{{(index $dishes 0).Dish.Description}}"}}*
+                  Statistik:
+                    Schule: {{"{{(index $dishes 0).Orders}}"}}
+                    Persönlich: {{"{{(index $dishes 0).PersonalOrders}}"}}
+              {{"{{- end }}"}}
+              {{"{{- if gt (len $dishes) 1 }}"}}
+                  **{{"{{(index $dishes 1).Dish.Name}}"}}** {{"{{ if (index $dishes 1).Booked }}"}}😋{{"{{ end }}"}}
+                  *{{"{{(index $dishes 1).Dish.Description}}"}}*
+                  Statistik:
+                    Schule: {{"{{(index $dishes 1).Orders}}"}}
+                    Persönlich: {{"{{(index $dishes 1).PersonalOrders}}"}}
+              {{"{{- end }}"}}
+            {{"{{- end }}"}}
+
       - name: Check Account Balance
         params:
           minbalance: 3000
           template: |
             Your account balanc is low: {{"{{.User.Customer.AccountBalance.Amount}}"}}ct
-        schedule: "* */15 * * * *"
+        schedule: "0 0 12 * * 3"
         type: CheckBalance
 
-      - name: UpdateMetrics
-        schedule: "0 * * * * *"
+      - name: Update Metrics
+        schedule: "0 */15 * * * *"
         type: UpdateMetrics
