@@ -149,12 +149,12 @@ func (d *Daemon) AddJob(Job Job) error {
 			return fmt.Errorf("error adding job: %w", err)
 		}
 
-	case "NextWeekSummery":
+	case "NextWeeksummary":
 		template, ok1 := Job.Params["template"].(string)
 		if !ok1 {
 			return fmt.Errorf("invalid parameter for order")
 		}
-		_, err := d.chron.AddFunc(Job.Schedule, d.nexWeekSummery(template))
+		_, err := d.chron.AddFunc(Job.Schedule, d.nexWeeksummary(template))
 		if err != nil {
 			return fmt.Errorf("error adding job: %w", err)
 		}
@@ -243,10 +243,10 @@ func (d Daemon) updateMetrics() func() {
 	}
 }
 
-func (d Daemon) nexWeekSummery(Template string) func() {
+func (d Daemon) nexWeeksummary(Template string) func() {
 	return func() {
-		jobId := "nextWeekSummery"
-		d.statusChan <- jobStatus{JobId: jobId, Msg: "Send order summery"}
+		jobId := "nextWeeksummary"
+		d.statusChan <- jobStatus{JobId: jobId, Msg: "Send order summary"}
 		weeks := client.GetNextCalenderWeeks(2)
 		dishes, err := d.cli.GetMenuWeek(weeks[1].Year, weeks[1].CalendarWeek)
 		if err != nil {

@@ -31,7 +31,7 @@ core:
 
       - name: Send order summary
         schedule: "0 5 12 * * 4"
-        type: NextWeekSummery
+        type: NextWeeksummary
         params:
           template: |
             {{"{{- range $date, $dishes := . }}"}}

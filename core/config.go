@@ -87,7 +87,7 @@ func validateJob(job Job) error {
 	case "UpdateMetrics":
 		// Specific validation for UpdateMetrics job if needed
 		break
-	case "NextWeekSummery":
+	case "NextWeeksummary":
 		break
 	// Add cases for other job types as necessary
 	default:
