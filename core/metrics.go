@@ -11,7 +11,7 @@ import (
 var dishOrders = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "mom_total_orders_per_dish",
 	Help: "Total number of orders per dish"},
-	[]string{"order_id", "dish_name"},
+	[]string{"dish_id", "dish_name", "date"},
 )
 
 var accountBalance = prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -33,8 +33,8 @@ func init() {
 	prometheus.MustRegister(paymentsTotal)
 }
 
-func UpdateOrdersPlaced(OrderId int, DishName string, NumOrders int) {
-	dishOrders.With(prometheus.Labels{"order_id": fmt.Sprint(OrderId), "dish_name": DishName}).Set(float64(NumOrders))
+func UpdateOrdersPlaced(DishId int, DishName string, Date string,  NumOrders int) {
+  dishOrders.With(prometheus.Labels{"dish_id": fmt.Sprint(DishId), "dish_name": DishName, "date": Date}).Set(float64(NumOrders))
 }
 
 func UpdateAccountBalance(UserId int, UserName string, Balance int) {

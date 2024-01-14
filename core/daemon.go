@@ -224,7 +224,7 @@ func (d Daemon) updateMetrics() func() {
 				if dish.Dummy {
 					continue
 				}
-				UpdateOrdersPlaced(dish.OrderId, dish.Dish.Name, dish.Orders)
+				UpdateOrdersPlaced(dish.Dish.ID, dish.Dish.Name, dish.Date.Format("2006-01-02"), dish.Orders)
 			}
 		}
 
