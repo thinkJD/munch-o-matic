@@ -1,0 +1,6 @@
+{
+  "packages": {
+    "path/to/pkg": {},
+    "release-type": "go"
+  }
+}
