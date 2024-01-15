@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.0](https://github.com/thinkJD/munch-o-matic/compare/v1.0.1...v1.1.0) (2024-01-14)
+
+
+### Features
+
+* Add low balance notification ([#28](https://github.com/thinkJD/munch-o-matic/issues/28)) ([27c563d](https://github.com/thinkJD/munch-o-matic/commit/27c563d1a395fc850f15ba5b4d385181cf55aa21))
+* Add prometheus metrics ([#31](https://github.com/thinkJD/munch-o-matic/issues/31)) ([092cf48](https://github.com/thinkJD/munch-o-matic/commit/092cf48c1d6a185b6f157f29862d33eafb22af10))
+* Support auto-order in daemon mode ([#32](https://github.com/thinkJD/munch-o-matic/issues/32)) ([62e5079](https://github.com/thinkJD/munch-o-matic/commit/62e507954c7dfb7573a824c98447dd34da33e1b2))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/spf13/viper to v1.18.2 ([#26](https://github.com/thinkJD/munch-o-matic/issues/26)) ([627cbd8](https://github.com/thinkJD/munch-o-matic/commit/627cbd8dd1db560542c2a03db5d0733920f52c1a))
+
 ## [1.0.1](https://github.com/thinkJD/munch-o-matic/compare/v1.0.0...v1.0.1) (2023-11-25)
 
 
